@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'main.dart'; // Чтобы видеть FinanceScreen
+import 'main_container.dart';
 import 'localization.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -73,10 +73,10 @@ class WelcomeScreen extends StatelessWidget {
                     height: 60,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Переход на главный экран (без возможности вернуться назад)
+                        // Переход на главный контейнер с навигацией (без возможности вернуться назад)
                         Navigator.pushReplacement(
                           context, 
-                          MaterialPageRoute(builder: (_) => const FinanceScreen())
+                          MaterialPageRoute(builder: (_) => const MainContainer())
                         );
                       },
                       style: ElevatedButton.styleFrom(
