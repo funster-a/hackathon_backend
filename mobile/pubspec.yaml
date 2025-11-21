@@ -1,0 +1,28 @@
+name: mobile
+description: Finance AI Hackathon App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  # 👇 Понизили требование с 3.24.0 до 3.10.0, чтобы прошел твой текущий SDK
+  sdk: '>=3.10.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # 👇 Стабильные версии под старый Flutter
+  dio: ^5.3.0
+  file_picker: ^10.3.7
+  fl_chart: ^1.1.1      # Версия 0.66 требует новый Dart, поэтому берем 0.63
+  google_fonts: ^6.3.2
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
