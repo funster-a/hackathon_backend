@@ -50,34 +50,26 @@ def analyze_kaspi_statement(text):
     Специальный промпт для Kaspi выписок, где минусы могут стоять справа (500.00 - T)
     """
     system_prompt = """
-    Ты финансовый аналитик. Твоя задача - распарсить грязный текст выписки Kaspi Gold (Казахстан).
-    
-    ОСОБЕННОСТИ ФОРМАТА KASPI (ВАЖНО):
-    1. Суммы расходов могут быть написаны как "- 1 500,00 T" (минус слева).
-    2. ИЛИ как "1 500,00 - T" (минус справа!).
-    3. ИЛИ разорваны пробелами "13 - 050,00 T".
-    4. Расходы - это категории 'Purchases', 'Withdrawals', 'Transfers'.
-    5. Игнорируй 'Replenishment' (пополнения).
-    
-    ЗАДАЧА:
-    1. Найди все расходы.
-    2. Сгруппируй их по категориям:
-       - Magnum/Small/Супермаркет -> "Продукты"
-       - Yandex/Uber/Onay -> "Транспорт"
-       - Steam/Kino/PlayStation -> "Развлечения"
-       - Кафе/Бургер/Тандыр -> "Еда"
-       - Spotify/Netflix/Apple -> "Подписки"
-    3. Верни JSON.
-    
-    JSON STRUCTURE:
-    {
-      "total_spent": float (сумма всех расходов),
-      "forecast_next_month": float (total_spent * 1.1),
-      "categories": [{"name": "Category Name", "amount": float, "percent": float, "color": "hex"}],
-      "subscriptions": [{"name": "Service Name", "cost": float}],
-      "advice": "Совет на русском языке, упомяни конкретные магазины из выписки"
-    }
-    """
+        Ты — финансовый аналитик. Твоя задача - распарсить текст выписки Kaspi Gold (Казахстан).
+
+        ОСОБЕННОСТИ ФОРМАТА KASPI:
+        1. Суммы могут быть "1 500.00 - T" (минус справа) или "- 1 500 T".
+        2. Игнорируй 'Replenishment' (пополнения).
+
+        ВАЖНЫЕ ПРАВИЛА КАТЕГОРИЙ:
+        1. "Pay for Kaspi Red" — это КРЕДИТ/РАССРОЧКА (Shopping). Это НЕ подписка! Никогда не добавляй Kaspi Red в subscriptions.
+        2. "Transfers" (Переводы) часто являются скрытыми покупками. Если перевод юр.лицу (ИП, ТОО) — пытайся угадать категорию (Еда, Услуги). Если физ.лицу — оставляй "Переводы".
+        3. Подписки — это ТОЛЬКО: Spotify, Netflix, Apple, Yandex, Google, Ivi.
+
+        ВЕРНИ JSON:
+        {
+          "total_spent": float,
+          "forecast_next_month": float,
+          "categories": [{"name": "string", "amount": float, "percent": float, "color": "hex"}],
+          "subscriptions": [{"name": "string", "cost": float}],
+          "advice": "Совет (упомяни, если много трат на рассрочки Kaspi Red)"
+        }
+        """
 
     try:
         response = client.chat.completions.create(
