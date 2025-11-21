@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'api_service.dart';
 import 'models.dart';
+import 'theme_helper.dart';
 
 class ChatScreen extends StatefulWidget {
-  // Принимаем данные, чтобы передать их в AI как контекст
-  final FinanceData financeData; 
-  // Сырой JSON тоже нужен, чтобы отправить его на сервер. 
-  // (В идеале FinanceData должна уметь toJson, но для скорости передадим так)
-  final Map<String, dynamic> rawContext; 
+  final FinanceData financeData;
+  final Map<String, dynamic> rawContext;
+  final List<Map<String, String>> messages; 
 
-  const ChatScreen({super.key, required this.financeData, required this.rawContext});
+  const ChatScreen({
+    super.key, 
+    required this.financeData, 
+    required this.rawContext,
+    required this.messages,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -19,17 +23,23 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ApiService _apiService = ApiService();
-  final List<Map<String, String>> _messages = []; // {role: user/ai, text: ...}
   bool _isTyping = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    // Приветственное сообщение
-    _messages.add({
-      "role": "ai", 
-      "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   Future<void> _sendMessage() async {
@@ -37,61 +47,97 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty) return;
 
     setState(() {
-      _messages.add({"role": "user", "text": text});
+      widget.messages.add({"role": "user", "text": text});
       _isTyping = true;
       _controller.clear();
     });
+    _scrollToBottom();
 
-    // Отправляем вопрос + контекст финансов
     final reply = await _apiService.sendChatMessage(text, widget.rawContext);
 
-    setState(() {
-      _isTyping = false;
-      _messages.add({"role": "ai", "text": reply});
-    });
+    if (mounted) {
+      setState(() {
+        _isTyping = false;
+        widget.messages.add({"role": "ai", "text": reply});
+      });
+      _scrollToBottom();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      // Фон берется из темы (белый или черный)
       appBar: AppBar(
         title: Text("AI Ассистент", style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          // Кнопка переключения темы
+          StatefulBuilder(
+            builder: (context, setState) {
+              return IconButton(
+                icon: Icon(getThemeIcon()),
+                tooltip: 'Переключить тему',
+                onPressed: () {
+                  toggleTheme();
+                  // Принудительно обновляем иконку
+                  setState(() {});
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: _messages.length + (_isTyping ? 1 : 0),
+              itemCount: widget.messages.length + (_isTyping ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index == _messages.length) {
+                if (index == widget.messages.length) {
                   return const Align(
                     alignment: Alignment.centerLeft,
-                    child: Padding(padding: EdgeInsets.all(8), child: Text("AI печатает...")),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Text("AI печатает...", style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+                    ),
                   );
                 }
-                final msg = _messages[index];
+                final msg = widget.messages[index];
                 final isUser = msg['role'] == 'user';
                 return Align(
                   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.all(12),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                    padding: const EdgeInsets.all(14),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
                     decoration: BoxDecoration(
-                      color: isUser ? const Color(0xFF2E3A59) : Colors.white,
-                      borderRadius: BorderRadius.circular(16).copyWith(
+                      // Цвет пузырей адаптируется
+                      color: isUser 
+                          ? const Color(0xFF2E3A59) 
+                          : (isDark ? const Color(0xFF2C2C2C) : Colors.white),
+                      borderRadius: BorderRadius.circular(20).copyWith(
                         bottomRight: isUser ? Radius.zero : null,
                         bottomLeft: !isUser ? Radius.zero : null,
                       ),
-                      boxShadow: [if (!isUser) const BoxShadow(color: Colors.black12, blurRadius: 4)],
+                      boxShadow: [
+                        if (!isDark) const BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))
+                      ],
                     ),
                     child: Text(
                       msg['text']!,
-                      style: TextStyle(color: isUser ? Colors.white : Colors.black87),
+                      style: TextStyle(
+                        // Цвет текста на пузырях
+                        color: isUser ? Colors.white : (isDark ? Colors.white : Colors.black87),
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 );
@@ -99,29 +145,42 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor, // Цвет нижней панели
+              border: Border(top: BorderSide(color: isDark ? Colors.grey[800]! : Colors.black12)),
+            ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controller,
+                    minLines: 1,
+                    maxLines: 5,
+                    keyboardType: TextInputType.multiline,
+                    textCapitalization: TextCapitalization.sentences,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       hintText: "Спроси о финансах...",
+                      hintStyle: TextStyle(color: isDark ? Colors.grey : null),
                       filled: true,
-                      fillColor: Colors.grey[100],
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      fillColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
-                    onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
-                const SizedBox(width: 8),
-                FloatingActionButton(
-                  mini: true,
-                  backgroundColor: const Color(0xFF2E3A59),
-                  onPressed: _sendMessage,
-                  child: const Icon(Icons.send, color: Colors.white),
+                const SizedBox(width: 10),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: FloatingActionButton(
+                    mini: true,
+                    elevation: 0,
+                    backgroundColor: const Color(0xFF2E3A59),
+                    onPressed: _sendMessage,
+                    child: const Icon(Icons.arrow_upward, color: Colors.white, size: 20),
+                  ),
                 ),
               ],
             ),
