@@ -279,6 +279,28 @@ class AppStrings {
       Language.kz: 'Сіз PRO-ға өттіңіз!',
       Language.en: 'You upgraded to PRO!',
     },
+    
+    // --- PERIOD FILTER ---
+    'period_week': {
+      Language.ru: 'Неделя',
+      Language.kz: 'Апта',
+      Language.en: 'Week',
+    },
+    'period_month': {
+      Language.ru: 'Месяц',
+      Language.kz: 'Ай',
+      Language.en: 'Month',
+    },
+    'period_all': {
+      Language.ru: 'Все',
+      Language.kz: 'Барлығы',
+      Language.en: 'All',
+    },
+    'recent_transactions': {
+      Language.ru: 'Последние транзакции',
+      Language.kz: 'Соңғы транзакциялар',
+      Language.en: 'Recent Transactions',
+    },
   };
 
   static String get(String key) {

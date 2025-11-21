@@ -6,6 +6,7 @@ class FinanceData {
   final String advice;
   final List<CategoryItem> categories;
   final List<SubscriptionItem> subscriptions;
+  final List<TransactionItem> transactions;
 
   FinanceData({
     required this.totalSpent,
@@ -13,6 +14,7 @@ class FinanceData {
     required this.advice,
     required this.categories,
     required this.subscriptions,
+    required this.transactions,
   });
 
   factory FinanceData.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,7 @@ class FinanceData {
       totalSpent: _parseDouble(json['total_spent']),
       forecast: _parseDouble(json['forecast_next_month'] ?? json['forecast']), // AI sometimes messes up keys
       advice: json['advice']?.toString() ?? 'Совет не сгенерирован',
+      // TODO: localize advice
       
       // Safe parsing for lists: check if it is actually a List
       categories: (json['categories'] is List)
@@ -32,6 +35,12 @@ class FinanceData {
       subscriptions: (json['subscriptions'] is List)
           ? (json['subscriptions'] as List)
               .map((e) => SubscriptionItem.fromJson(e))
+              .toList()
+          : [],
+      
+      transactions: (json['transactions'] is List)
+          ? (json['transactions'] as List)
+              .map((e) => TransactionItem.fromJson(e))
               .toList()
           : [],
     );
@@ -52,8 +61,39 @@ class CategoryItem {
   final double amount;
   final double percent;
   final Color color;
+  final String? nameRu;
+  final String? nameKz;
+  final String? nameEn;
 
-  CategoryItem({required this.name, required this.amount, required this.percent, required this.color});
+  CategoryItem({
+    required this.name,
+    required this.amount,
+    required this.percent,
+    required this.color,
+    this.nameRu,
+    this.nameKz,
+    this.nameEn,
+  });
+  
+  // Получить название на текущем языке
+  String getLocalizedName() {
+    // Импортируем AppStrings для получения текущего языка
+    // Но так как это модель, лучше передавать язык извне
+    return name; // По умолчанию возвращаем name
+  }
+  
+  String getNameForLanguage(String langCode) {
+    switch (langCode) {
+      case 'ru':
+        return nameRu ?? name;
+      case 'kz':
+        return nameKz ?? name;
+      case 'en':
+        return nameEn ?? name;
+      default:
+        return name;
+    }
+  }
 
   factory CategoryItem.fromJson(dynamic json) {
     // If json is not a Map (AI sometimes sends strings), return a dummy
@@ -63,6 +103,9 @@ class CategoryItem {
 
     return CategoryItem(
       name: json['name']?.toString() ?? 'Без названия',
+      nameRu: json['name_ru']?.toString(),
+      nameKz: json['name_kz']?.toString(),
+      nameEn: json['name_en']?.toString(),
       amount: FinanceData._parseDouble(json['amount']),
       percent: FinanceData._parseDouble(json['percent']),
       color: _parseColor(json['color']),
@@ -72,12 +115,25 @@ class CategoryItem {
   static Color _parseColor(dynamic hexString) {
     if (hexString == null) return const Color(0xFF9E9E9E);
     try {
-      final buffer = StringBuffer();
-      String hex = hexString.toString().replaceAll('#', '');
-      if (hex.length == 6 || hex.length == 7) buffer.write('ff');
-      buffer.write(hex);
-      return Color(int.parse(buffer.toString(), radix: 16));
+      String hex = hexString.toString().trim();
+      
+      // Убираем все префиксы (#, 0x, 0X)
+      hex = hex.replaceAll('#', '').replaceAll('0x', '').replaceAll('0X', '');
+      
+      // Если длина 6 символов (RGB), добавляем альфа-канал FF
+      if (hex.length == 6) {
+        return Color(int.parse('FF$hex', radix: 16));
+      }
+      
+      // Если длина 8 символов (ARGB), используем как есть
+      if (hex.length == 8) {
+        return Color(int.parse(hex, radix: 16));
+      }
+      
+      // Если ничего не подошло, возвращаем серый
+      return const Color(0xFF9E9E9E);
     } catch (e) {
+      print('Error parsing color: $hexString, error: $e');
       return const Color(0xFF9E9E9E);
     }
   }
@@ -97,5 +153,67 @@ class SubscriptionItem {
       name: json['name']?.toString() ?? 'Сервис',
       cost: FinanceData._parseDouble(json['cost']),
     );
+  }
+}
+
+class TransactionItem {
+  final DateTime date;
+  final double amount;
+  final String name; // description из JSON
+  final String category;
+
+  TransactionItem({
+    required this.date,
+    required this.amount,
+    required this.name,
+    required this.category,
+  });
+
+  factory TransactionItem.fromJson(dynamic json) {
+    if (json is! Map<String, dynamic>) {
+      return TransactionItem(
+        date: DateTime.now(),
+        amount: 0,
+        name: "Неизвестная транзакция",
+        category: "Прочее",
+      );
+    }
+
+    return TransactionItem(
+      date: _parseDate(json['date']),
+      amount: FinanceData._parseDouble(json['amount']),
+      name: json['description']?.toString() ?? json['name']?.toString() ?? 'Без описания',
+      category: json['category']?.toString() ?? 'Прочее',
+    );
+  }
+
+  static DateTime _parseDate(dynamic dateString) {
+    if (dateString == null) return DateTime.now();
+    
+    try {
+      String dateStr = dateString.toString().trim();
+      
+      // Пробуем формат DD.MM.YYYY
+      if (dateStr.contains('.')) {
+        final parts = dateStr.split('.');
+        if (parts.length == 3) {
+          final day = int.parse(parts[0]);
+          final month = int.parse(parts[1]);
+          final year = int.parse(parts[2]);
+          return DateTime(year, month, day);
+        }
+      }
+      
+      // Пробуем формат ISO YYYY-MM-DD
+      if (dateStr.contains('-')) {
+        return DateTime.parse(dateStr);
+      }
+      
+      // Пробуем стандартный парсинг
+      return DateTime.parse(dateStr);
+    } catch (e) {
+      print('Error parsing date: $dateString, error: $e');
+      return DateTime.now();
+    }
   }
 }
