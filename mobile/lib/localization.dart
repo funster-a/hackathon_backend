@@ -301,6 +301,160 @@ class AppStrings {
       Language.kz: 'Соңғы транзакциялар',
       Language.en: 'Recent Transactions',
     },
+    
+    // --- GOALS SCREEN ---
+    'goals_title': {
+      Language.ru: 'Финансовые цели',
+      Language.kz: 'Қаржылық мақсаттар',
+      Language.en: 'Financial Goals',
+    },
+    'goals_subtitle': {
+      Language.ru: 'Укажите вашу финансовую цель и доход, чтобы получать более персонализированные советы',
+      Language.kz: 'Жекеленген кеңестер алу үшін қаржылық мақсатыңызды және табысыңызды көрсетіңіз',
+      Language.en: 'Specify your financial goal and income to receive more personalized advice',
+    },
+    'goals_goal_label': {
+      Language.ru: 'Ваша финансовая цель',
+      Language.kz: 'Сіздің қаржылық мақсатыңыз',
+      Language.en: 'Your Financial Goal',
+    },
+    'goals_goal_hint': {
+      Language.ru: 'Например: Накопить 1 млн на машину',
+      Language.kz: 'Мысалы: Көлікке 1 млн жинау',
+      Language.en: 'For example: Save 1 million for a car',
+    },
+    'goals_income_label': {
+      Language.ru: 'Ваш ежемесячный доход',
+      Language.kz: 'Сіздің айлық табысыңыз',
+      Language.en: 'Your Monthly Income',
+    },
+    'goals_income_hint': {
+      Language.ru: 'Выберите диапазон дохода',
+      Language.kz: 'Табыс диапазонын таңдаңыз',
+      Language.en: 'Select income range',
+    },
+    'goals_save_button': {
+      Language.ru: 'Сохранить',
+      Language.kz: 'Сақтау',
+      Language.en: 'Save',
+    },
+    'goals_saved': {
+      Language.ru: 'Цель успешно сохранена!',
+      Language.kz: 'Мақсат сәтті сақталды!',
+      Language.en: 'Goal saved successfully!',
+    },
+    'goals_error_empty': {
+      Language.ru: 'Пожалуйста, укажите финансовую цель',
+      Language.kz: 'Қаржылық мақсатты көрсетіңіз',
+      Language.en: 'Please specify your financial goal',
+    },
+    'goals_error_save': {
+      Language.ru: 'Ошибка при сохранении',
+      Language.kz: 'Сақтау кезінде қате',
+      Language.en: 'Error saving',
+    },
+    'goals_menu_item': {
+      Language.ru: 'Финансовые цели',
+      Language.kz: 'Қаржылық мақсаттар',
+      Language.en: 'Financial Goals',
+    },
+    'goals_income_option1': {
+      Language.ru: 'До 100 000 ₸',
+      Language.kz: '100 000 ₸ дейін',
+      Language.en: 'Up to 100,000 ₸',
+    },
+    'goals_income_option2': {
+      Language.ru: '100 000 - 200 000 ₸',
+      Language.kz: '100 000 - 200 000 ₸',
+      Language.en: '100,000 - 200,000 ₸',
+    },
+    'goals_income_option3': {
+      Language.ru: '200 000 - 300 000 ₸',
+      Language.kz: '200 000 - 300 000 ₸',
+      Language.en: '200,000 - 300,000 ₸',
+    },
+    'goals_income_option4': {
+      Language.ru: '300 000 - 500 000 ₸',
+      Language.kz: '300 000 - 500 000 ₸',
+      Language.en: '300,000 - 500,000 ₸',
+    },
+    'goals_income_option5': {
+      Language.ru: '500 000 - 1 000 000 ₸',
+      Language.kz: '500 000 - 1 000 000 ₸',
+      Language.en: '500,000 - 1,000,000 ₸',
+    },
+    'goals_income_option6': {
+      Language.ru: 'Свыше 1 000 000 ₸',
+      Language.kz: '1 000 000 ₸ астам',
+      Language.en: 'Over 1,000,000 ₸',
+    },
+    
+    // --- PIN SCREEN ---
+    'pin_setup_title': {
+      Language.ru: 'Установите ПИН-код',
+      Language.kz: 'PIN-кодты орнатыңыз',
+      Language.en: 'Set PIN Code',
+    },
+    'pin_setup_subtitle': {
+      Language.ru: 'Введите 4-значный ПИН-код',
+      Language.kz: '4 таңбалы PIN-кодты енгізіңіз',
+      Language.en: 'Enter 4-digit PIN code',
+    },
+    'pin_confirm_title': {
+      Language.ru: 'Подтвердите ПИН-код',
+      Language.kz: 'PIN-кодты растаңыз',
+      Language.en: 'Confirm PIN Code',
+    },
+    'pin_confirm_subtitle': {
+      Language.ru: 'Повторите ПИН-код для подтверждения',
+      Language.kz: 'Растау үшін PIN-кодты қайталаңыз',
+      Language.en: 'Repeat PIN code to confirm',
+    },
+    'pin_verify_title': {
+      Language.ru: 'Введите ПИН-код',
+      Language.kz: 'PIN-кодты енгізіңіз',
+      Language.en: 'Enter PIN Code',
+    },
+    'pin_verify_subtitle': {
+      Language.ru: 'Для доступа к приложению',
+      Language.kz: 'Қолданбаға кіру үшін',
+      Language.en: 'To access the app',
+    },
+    'pin_enter_old_title': {
+      Language.ru: 'Введите текущий ПИН-код',
+      Language.kz: 'Ағымдағы PIN-кодты енгізіңіз',
+      Language.en: 'Enter Current PIN',
+    },
+    'pin_enter_old_subtitle': {
+      Language.ru: 'Для изменения ПИН-кода',
+      Language.kz: 'PIN-кодты өзгерту үшін',
+      Language.en: 'To change PIN code',
+    },
+    'pin_error_wrong': {
+      Language.ru: 'Неверный ПИН-код',
+      Language.kz: 'Қате PIN-код',
+      Language.en: 'Wrong PIN code',
+    },
+    'pin_error_mismatch': {
+      Language.ru: 'ПИН-коды не совпадают',
+      Language.kz: 'PIN-кодтар сәйкес келмейді',
+      Language.en: 'PIN codes do not match',
+    },
+    'pin_menu_setup': {
+      Language.ru: 'Установить ПИН-код',
+      Language.kz: 'PIN-кодты орнату',
+      Language.en: 'Set PIN Code',
+    },
+    'pin_menu_change': {
+      Language.ru: 'Изменить ПИН-код',
+      Language.kz: 'PIN-кодты өзгерту',
+      Language.en: 'Change PIN Code',
+    },
+    'pin_menu_remove': {
+      Language.ru: 'Удалить ПИН-код',
+      Language.kz: 'PIN-кодты жою',
+      Language.en: 'Remove PIN Code',
+    },
   };
 
   static String get(String key) {

@@ -7,13 +7,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'api_service.dart';
 import 'models.dart';
-import 'chat_screen.dart';
 import 'welcome_screen.dart';
 import 'premium_screen.dart';
 import 'theme_helper.dart';
 import 'profile_screen.dart';
 import 'localization.dart';
 import 'usage_manager.dart';
+import 'pin_screen.dart';
 
 // Enum для периодов фильтрации
 enum FilterPeriod { week, month, all }
@@ -119,15 +119,74 @@ class _MyAppState extends State<MyApp> {
           // ⚙️ Ручное переключение темы
           themeMode: _themeMode, 
           
-          home: const WelcomeScreen(),
+          home: const PinCheckScreen(),
         );
       },
     );
   }
 }
 
+// Экран проверки PIN-кода при запуске
+class PinCheckScreen extends StatefulWidget {
+  const PinCheckScreen({super.key});
+
+  @override
+  State<PinCheckScreen> createState() => _PinCheckScreenState();
+}
+
+class _PinCheckScreenState extends State<PinCheckScreen> {
+  bool _isChecking = true;
+  bool _pinSet = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPin();
+  }
+
+  Future<void> _checkPin() async {
+    final pinSet = await PinScreen.isPinSet();
+    if (mounted) {
+      setState(() {
+        _pinSet = pinSet;
+        _isChecking = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isChecking) {
+      // Показываем загрузку во время проверки
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Если PIN установлен, показываем экран ввода PIN
+    if (_pinSet) {
+      return PinScreen(
+        mode: PinMode.verify,
+        onSuccess: () {
+          // После успешной проверки PIN переходим на WelcomeScreen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+          );
+        },
+      );
+    }
+
+    // Если PIN не установлен, показываем WelcomeScreen
+    return const WelcomeScreen();
+  }
+}
+
 class FinanceScreen extends StatefulWidget {
-  const FinanceScreen({super.key});
+  final Function(FinanceData, Map<String, dynamic>)? onChatRequested;
+  
+  const FinanceScreen({super.key, this.onChatRequested});
 
   @override
   State<FinanceScreen> createState() => _FinanceScreenState();
@@ -199,27 +258,51 @@ class _FinanceScreenState extends State<FinanceScreen> {
         setState(() => _isLoading = true);
 
         File file = File(result.files.single.path!);
-        final jsonResponse = await _apiService.uploadStatement(file);
         
-        // Увеличиваем счетчик использований только при успешной загрузке
-        await usageManager.incrementUsage();
-        
-        if (!mounted) return;
-        setState(() {
-          _rawJson = jsonResponse;
-          _data = FinanceData.fromJson(jsonResponse);
-          _chatHistory.clear();
-          _chatHistory.add({
-            "role": "ai", 
-            "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
-          });
-          // Очищаем кэш при загрузке новых данных
-          _clearCache();
-        });
+        try {
+          final jsonResponse = await _apiService.uploadStatement(file);
+          
+          // Проверяем, что ответ не пустой
+          if (jsonResponse.isEmpty) {
+            throw Exception("Пустой ответ от сервера");
+          }
+          
+          // Пытаемся распарсить JSON
+          try {
+            final financeData = FinanceData.fromJson(jsonResponse);
+            
+            // Увеличиваем счетчик использований только при успешной загрузке
+            await usageManager.incrementUsage();
+            
+            if (!mounted) return;
+            setState(() {
+              _rawJson = jsonResponse;
+              _data = financeData;
+              _chatHistory.clear();
+              _chatHistory.add({
+                "role": "ai", 
+                "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
+              });
+              // Очищаем кэш при загрузке новых данных
+              _clearCache();
+            });
+          } catch (parseError) {
+            print("Ошибка парсинга JSON: $parseError");
+            print("JSON ответ: ${jsonResponse.toString().substring(0, 500)}");
+            throw Exception("Ошибка обработки данных: $parseError");
+          }
+        } catch (apiError) {
+          print("Ошибка API: $apiError");
+          rethrow;
+        }
       }
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = "Не удалось загрузить. Проверьте сервер.");
+      final errorMessage = e.toString();
+      print("Полная ошибка загрузки: $errorMessage");
+      setState(() {
+        _error = "Не удалось загрузить. Проверьте сервер.\nОшибка: ${errorMessage.length > 100 ? errorMessage.substring(0, 100) : errorMessage}";
+      });
     } finally {
       if (mounted) {
       setState(() => _isLoading = false);
@@ -231,36 +314,33 @@ class _FinanceScreenState extends State<FinanceScreen> {
   Widget build(BuildContext context) {
     final kztFormatter = NumberFormat.currency(symbol: '₸', decimalDigits: 0, locale: 'ru');
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isInContainer = widget.onChatRequested != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: ValueListenableBuilder<Language>(
-          valueListenable: AppStrings.languageNotifier,
-          builder: (context, language, child) {
-            return Text(AppStrings.get('app_title'), style: const TextStyle(fontWeight: FontWeight.bold));
-          },
-        ),
+        title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.person_outline),
-          onPressed: () {
-            Navigator.push(
-              context, 
-              MaterialPageRoute(builder: (_) => ProfileScreen(
-                onLogout: () {
-                  // Эта функция сработает, когда в профиле нажмут "Выйти"
-                  setState(() {
-                    _data = null;
-                    _rawJson = null;
-                    _chatHistory.clear();
-                  });
+        automaticallyImplyLeading: false, // Убираем кнопку назад для работы в табах
+        leading: isInContainer
+            ? null // Убираем кнопку профиля, если экран в контейнере (профиль в навигации)
+            : IconButton(
+                icon: const Icon(Icons.person_outline),
+                onPressed: () {
+                  Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (_) => ProfileScreen(
+                      onLogout: () {
+                        setState(() {
+                          _data = null;
+                          _rawJson = null;
+                          _chatHistory.clear();
+                        });
+                      },
+                    ))
+                  );
                 },
-              ))
-            );
-          },
-        ),
+              ),
         actions: [
-          // Кнопка переключения темы
           StatefulBuilder(
             builder: (context, setState) {
               return IconButton(
@@ -268,42 +348,17 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 tooltip: 'Переключить тему',
                 onPressed: () {
                   toggleTheme();
-                  // Принудительно обновляем иконку
                   setState(() {});
                 },
               );
             },
           ),
-          // Кнопка премиума
           IconButton(
             icon: const Icon(Icons.workspace_premium, color: Colors.amber, size: 28),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumScreen())),
           ),
         ],
       ),
-      floatingActionButton: (_data != null && _rawJson != null)
-          ? ValueListenableBuilder<Language>(
-              valueListenable: AppStrings.languageNotifier,
-              builder: (context, language, child) {
-                return FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.push(
-                      context, 
-                      MaterialPageRoute(builder: (_) => ChatScreen(
-                        financeData: _data!, 
-                        rawContext: _rawJson!,
-                        messages: _chatHistory,
-                      ))
-                    );
-                  },
-                  label: Text(AppStrings.get('ai_chat_button'), style: const TextStyle(color: Colors.white)),
-                  icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-                  backgroundColor: const Color(0xFF2E3A59),
-                );
-              },
-            )
-          : null,
-      
       body: _isLoading
           ? const FunLoader()
           : _data == null
@@ -419,7 +474,13 @@ class _FinanceScreenState extends State<FinanceScreen> {
   
   // Вычисление суммы отфильтрованных транзакций (с кэшированием)
   double _getFilteredTotal() {
-    if (_data == null || _data!.transactions.isEmpty) return 0.0;
+    if (_data == null) return 0.0;
+    
+    // Для периода "Все" используем total_spent из исходных данных
+    // Это гарантирует, что сумма совпадает с суммами категорий
+    if (_selectedPeriod == FilterPeriod.all) {
+      return _data!.totalSpent;
+    }
     
     // Проверяем кэш
     if (_cachedFilteredTotals != null && 
@@ -429,6 +490,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
     
     // Инициализируем кэш, если его нет
     _cachedFilteredTotals ??= {};
+    
+    // Для других периодов вычисляем сумму из отфильтрованных транзакций
+    if (_data!.transactions.isEmpty) {
+      _cachedFilteredTotals![_selectedPeriod] = 0.0;
+      return 0.0;
+    }
     
     final filtered = _getFilteredTransactions();
     final total = filtered.fold(0.0, (sum, transaction) => sum + transaction.amount);
