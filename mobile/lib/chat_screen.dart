@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'api_service.dart';
 import 'models.dart';
 import 'localization.dart';
-import 'theme_helper.dart';
 import 'usage_manager.dart';
 import 'premium_screen.dart';
 
@@ -130,25 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
           backgroundColor: bgColor,
           appBar: AppBar(
             title: Text(AppStrings.get('chat_title'), style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new),
-              onPressed: () => Navigator.pop(context),
-            ),
-            actions: [
-              // Кнопка переключения темы
-              StatefulBuilder(
-                builder: (context, setState) {
-                  return IconButton(
-                    icon: Icon(getThemeIcon()),
-                    tooltip: 'Переключить тему',
-                    onPressed: () {
-                      toggleTheme();
-                      setState(() {});
-                    },
-                  );
-                },
-              ),
-            ],
+            automaticallyImplyLeading: false, // Убираем кнопку назад для работы в табах
           ),
       body: Column(
         children: [

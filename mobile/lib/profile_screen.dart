@@ -42,6 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: Text(AppStrings.get('profile_title'), style: const TextStyle(fontWeight: FontWeight.bold)),
             centerTitle: true,
             elevation: 0,
+            automaticallyImplyLeading: false, // Убираем кнопку назад для работы в табах
           ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

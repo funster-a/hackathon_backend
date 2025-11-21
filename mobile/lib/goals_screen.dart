@@ -128,6 +128,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
             ),
             centerTitle: true,
             elevation: 0,
+            automaticallyImplyLeading: false, // Убираем кнопку назад для работы в табах
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(24),

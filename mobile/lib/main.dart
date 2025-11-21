@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'api_service.dart';
 import 'models.dart';
-import 'chat_screen.dart';
 import 'welcome_screen.dart';
 import 'premium_screen.dart';
 import 'theme_helper.dart';
@@ -185,7 +184,9 @@ class _PinCheckScreenState extends State<PinCheckScreen> {
 }
 
 class FinanceScreen extends StatefulWidget {
-  const FinanceScreen({super.key});
+  final Function(FinanceData, Map<String, dynamic>)? onChatRequested;
+  
+  const FinanceScreen({super.key, this.onChatRequested});
 
   @override
   State<FinanceScreen> createState() => _FinanceScreenState();
@@ -313,36 +314,33 @@ class _FinanceScreenState extends State<FinanceScreen> {
   Widget build(BuildContext context) {
     final kztFormatter = NumberFormat.currency(symbol: '₸', decimalDigits: 0, locale: 'ru');
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isInContainer = widget.onChatRequested != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: ValueListenableBuilder<Language>(
-          valueListenable: AppStrings.languageNotifier,
-          builder: (context, language, child) {
-            return Text(AppStrings.get('app_title'), style: const TextStyle(fontWeight: FontWeight.bold));
-          },
-        ),
+        title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.person_outline),
-          onPressed: () {
-            Navigator.push(
-              context, 
-              MaterialPageRoute(builder: (_) => ProfileScreen(
-                onLogout: () {
-                  // Эта функция сработает, когда в профиле нажмут "Выйти"
-                  setState(() {
-                    _data = null;
-                    _rawJson = null;
-                    _chatHistory.clear();
-                  });
+        automaticallyImplyLeading: false, // Убираем кнопку назад для работы в табах
+        leading: isInContainer
+            ? null // Убираем кнопку профиля, если экран в контейнере (профиль в навигации)
+            : IconButton(
+                icon: const Icon(Icons.person_outline),
+                onPressed: () {
+                  Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (_) => ProfileScreen(
+                      onLogout: () {
+                        setState(() {
+                          _data = null;
+                          _rawJson = null;
+                          _chatHistory.clear();
+                        });
+                      },
+                    ))
+                  );
                 },
-              ))
-            );
-          },
-        ),
+              ),
         actions: [
-          // Кнопка переключения темы
           StatefulBuilder(
             builder: (context, setState) {
               return IconButton(
@@ -350,42 +348,17 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 tooltip: 'Переключить тему',
                 onPressed: () {
                   toggleTheme();
-                  // Принудительно обновляем иконку
                   setState(() {});
                 },
               );
             },
           ),
-          // Кнопка премиума
           IconButton(
             icon: const Icon(Icons.workspace_premium, color: Colors.amber, size: 28),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumScreen())),
           ),
         ],
       ),
-      floatingActionButton: (_data != null && _rawJson != null)
-          ? ValueListenableBuilder<Language>(
-              valueListenable: AppStrings.languageNotifier,
-              builder: (context, language, child) {
-                return FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.push(
-                      context, 
-                      MaterialPageRoute(builder: (_) => ChatScreen(
-                        financeData: _data!, 
-                        rawContext: _rawJson!,
-                        messages: _chatHistory,
-                      ))
-                    );
-                  },
-                  label: Text(AppStrings.get('ai_chat_button'), style: const TextStyle(color: Colors.white)),
-                  icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-                  backgroundColor: const Color(0xFF2E3A59),
-                );
-              },
-            )
-          : null,
-      
       body: _isLoading
           ? const FunLoader()
           : _data == null
