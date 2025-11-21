@@ -14,6 +14,7 @@ import 'theme_helper.dart';
 import 'profile_screen.dart';
 import 'localization.dart';
 import 'usage_manager.dart';
+import 'pin_screen.dart';
 
 // Enum для периодов фильтрации
 enum FilterPeriod { week, month, all }
@@ -119,10 +120,67 @@ class _MyAppState extends State<MyApp> {
           // ⚙️ Ручное переключение темы
           themeMode: _themeMode, 
           
-          home: const WelcomeScreen(),
+          home: const PinCheckScreen(),
         );
       },
     );
+  }
+}
+
+// Экран проверки PIN-кода при запуске
+class PinCheckScreen extends StatefulWidget {
+  const PinCheckScreen({super.key});
+
+  @override
+  State<PinCheckScreen> createState() => _PinCheckScreenState();
+}
+
+class _PinCheckScreenState extends State<PinCheckScreen> {
+  bool _isChecking = true;
+  bool _pinSet = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPin();
+  }
+
+  Future<void> _checkPin() async {
+    final pinSet = await PinScreen.isPinSet();
+    if (mounted) {
+      setState(() {
+        _pinSet = pinSet;
+        _isChecking = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isChecking) {
+      // Показываем загрузку во время проверки
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Если PIN установлен, показываем экран ввода PIN
+    if (_pinSet) {
+      return PinScreen(
+        mode: PinMode.verify,
+        onSuccess: () {
+          // После успешной проверки PIN переходим на WelcomeScreen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+          );
+        },
+      );
+    }
+
+    // Если PIN не установлен, показываем WelcomeScreen
+    return const WelcomeScreen();
   }
 }
 
@@ -199,27 +257,51 @@ class _FinanceScreenState extends State<FinanceScreen> {
         setState(() => _isLoading = true);
 
         File file = File(result.files.single.path!);
-        final jsonResponse = await _apiService.uploadStatement(file);
         
-        // Увеличиваем счетчик использований только при успешной загрузке
-        await usageManager.incrementUsage();
-        
-        if (!mounted) return;
-        setState(() {
-          _rawJson = jsonResponse;
-          _data = FinanceData.fromJson(jsonResponse);
-          _chatHistory.clear();
-          _chatHistory.add({
-            "role": "ai", 
-            "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
-          });
-          // Очищаем кэш при загрузке новых данных
-          _clearCache();
-        });
+        try {
+          final jsonResponse = await _apiService.uploadStatement(file);
+          
+          // Проверяем, что ответ не пустой
+          if (jsonResponse.isEmpty) {
+            throw Exception("Пустой ответ от сервера");
+          }
+          
+          // Пытаемся распарсить JSON
+          try {
+            final financeData = FinanceData.fromJson(jsonResponse);
+            
+            // Увеличиваем счетчик использований только при успешной загрузке
+            await usageManager.incrementUsage();
+            
+            if (!mounted) return;
+            setState(() {
+              _rawJson = jsonResponse;
+              _data = financeData;
+              _chatHistory.clear();
+              _chatHistory.add({
+                "role": "ai", 
+                "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
+              });
+              // Очищаем кэш при загрузке новых данных
+              _clearCache();
+            });
+          } catch (parseError) {
+            print("Ошибка парсинга JSON: $parseError");
+            print("JSON ответ: ${jsonResponse.toString().substring(0, 500)}");
+            throw Exception("Ошибка обработки данных: $parseError");
+          }
+        } catch (apiError) {
+          print("Ошибка API: $apiError");
+          rethrow;
+        }
       }
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = "Не удалось загрузить. Проверьте сервер.");
+      final errorMessage = e.toString();
+      print("Полная ошибка загрузки: $errorMessage");
+      setState(() {
+        _error = "Не удалось загрузить. Проверьте сервер.\nОшибка: ${errorMessage.length > 100 ? errorMessage.substring(0, 100) : errorMessage}";
+      });
     } finally {
       if (mounted) {
       setState(() => _isLoading = false);

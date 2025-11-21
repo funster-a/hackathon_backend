@@ -12,8 +12,8 @@ class ApiService {
     }
   }  
   final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 60),
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 120), // Увеличиваем таймаут для больших выписок
   ));
 
   // Загрузка файла (уже было)

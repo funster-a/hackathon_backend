@@ -388,6 +388,73 @@ class AppStrings {
       Language.kz: '1 000 000 ₸ астам',
       Language.en: 'Over 1,000,000 ₸',
     },
+    
+    // --- PIN SCREEN ---
+    'pin_setup_title': {
+      Language.ru: 'Установите ПИН-код',
+      Language.kz: 'PIN-кодты орнатыңыз',
+      Language.en: 'Set PIN Code',
+    },
+    'pin_setup_subtitle': {
+      Language.ru: 'Введите 4-значный ПИН-код',
+      Language.kz: '4 таңбалы PIN-кодты енгізіңіз',
+      Language.en: 'Enter 4-digit PIN code',
+    },
+    'pin_confirm_title': {
+      Language.ru: 'Подтвердите ПИН-код',
+      Language.kz: 'PIN-кодты растаңыз',
+      Language.en: 'Confirm PIN Code',
+    },
+    'pin_confirm_subtitle': {
+      Language.ru: 'Повторите ПИН-код для подтверждения',
+      Language.kz: 'Растау үшін PIN-кодты қайталаңыз',
+      Language.en: 'Repeat PIN code to confirm',
+    },
+    'pin_verify_title': {
+      Language.ru: 'Введите ПИН-код',
+      Language.kz: 'PIN-кодты енгізіңіз',
+      Language.en: 'Enter PIN Code',
+    },
+    'pin_verify_subtitle': {
+      Language.ru: 'Для доступа к приложению',
+      Language.kz: 'Қолданбаға кіру үшін',
+      Language.en: 'To access the app',
+    },
+    'pin_enter_old_title': {
+      Language.ru: 'Введите текущий ПИН-код',
+      Language.kz: 'Ағымдағы PIN-кодты енгізіңіз',
+      Language.en: 'Enter Current PIN',
+    },
+    'pin_enter_old_subtitle': {
+      Language.ru: 'Для изменения ПИН-кода',
+      Language.kz: 'PIN-кодты өзгерту үшін',
+      Language.en: 'To change PIN code',
+    },
+    'pin_error_wrong': {
+      Language.ru: 'Неверный ПИН-код',
+      Language.kz: 'Қате PIN-код',
+      Language.en: 'Wrong PIN code',
+    },
+    'pin_error_mismatch': {
+      Language.ru: 'ПИН-коды не совпадают',
+      Language.kz: 'PIN-кодтар сәйкес келмейді',
+      Language.en: 'PIN codes do not match',
+    },
+    'pin_menu_setup': {
+      Language.ru: 'Установить ПИН-код',
+      Language.kz: 'PIN-кодты орнату',
+      Language.en: 'Set PIN Code',
+    },
+    'pin_menu_change': {
+      Language.ru: 'Изменить ПИН-код',
+      Language.kz: 'PIN-кодты өзгерту',
+      Language.en: 'Change PIN Code',
+    },
+    'pin_menu_remove': {
+      Language.ru: 'Удалить ПИН-код',
+      Language.kz: 'PIN-кодты жою',
+      Language.en: 'Remove PIN Code',
+    },
   };
 
   static String get(String key) {

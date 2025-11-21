@@ -5,6 +5,7 @@ import 'premium_screen.dart';
 import 'localization.dart'; // Импорт локализации
 import 'usage_manager.dart';
 import 'goals_screen.dart';
+import 'pin_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -173,6 +174,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const GoalsScreen()),
+                );
+              },
+            ),
+
+            const Divider(height: 20),
+
+            // ПИН-код
+            FutureBuilder<bool>(
+              future: PinScreen.isPinSet(),
+              builder: (context, snapshot) {
+                final isPinSet = snapshot.data ?? false;
+                return ListTile(
+                  leading: const Icon(Icons.lock, color: Color(0xFF2E3A59)),
+                  title: Text(
+                    isPinSet 
+                        ? AppStrings.get('pin_menu_change')
+                        : AppStrings.get('pin_menu_setup'),
+                    style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    if (isPinSet) {
+                      // Изменение PIN-кода
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PinScreen(mode: PinMode.change),
+                        ),
+                      );
+                      if (result == true && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(AppStrings.get('pin_menu_change')),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } else {
+                      // Установка PIN-кода
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PinScreen(mode: PinMode.setup),
+                        ),
+                      );
+                      if (result == true && mounted) {
+                        setState(() {}); // Обновляем состояние для обновления текста кнопки
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(AppStrings.get('pin_menu_setup')),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    }
+                  },
                 );
               },
             ),
