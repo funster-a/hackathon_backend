@@ -44,22 +44,21 @@ class _FinanceScreenState extends State<FinanceScreen> {
   bool _isLoading = false;
   String? _error;
 
+  // 🔥 ХРАНИЛИЩЕ ИСТОРИИ ЧАТА (чтобы не пропадало)
+  final List<Map<String, String>> _chatHistory = [];
+
   Future<void> _pickAndUpload() async {
-    // Сбрасываем ошибку сразу, но загрузку ПОКА НЕ включаем
     setState(() {
       _error = null;
     });
 
     try {
-      // 1. Сначала открываем выбор файла
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
       );
 
-      // 2. Если пользователь выбрал файл
       if (result != null) {
-        // ВОТ ТЕПЕРЬ включаем лоадер
         setState(() {
           _isLoading = true;
         });
@@ -67,25 +66,29 @@ class _FinanceScreenState extends State<FinanceScreen> {
         File file = File(result.files.single.path!);
         
         // Отправляем на сервер
+        // (Убедись, что в api_service.dart метод uploadStatement возвращает Map!)
         final jsonResponse = await _apiService.uploadStatement(file);
-        // Когда пришел ответ
+        
         setState(() {
-          _rawJson = jsonResponse; // Сохраняем сырой JSON для чата
-          _data = FinanceData.fromJson(jsonResponse); // Создаем FinanceData из JSON
+          _rawJson = jsonResponse;
+          _data = FinanceData.fromJson(jsonResponse);
+          
+          // 🔥 Сбрасываем чат для нового файла
+          _chatHistory.clear();
+          _chatHistory.add({
+            "role": "ai", 
+            "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
+          });
         });
       } 
-      // Если result == null (нажал "Отмена"), мы просто ничего не делаем,
-      // лоадер не включался, всё ок.
-
     } catch (e) {
-      setState(() => _error = "Не удалось загрузить. Проверьте сервер.");
+      setState(() => _error = "Не удалось загрузить. Проверьте сервер (python main.py).");
     } finally {
-      // Выключаем лоадер в любом случае
       setState(() => _isLoading = false);
     }
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     final kztFormatter = NumberFormat.currency(symbol: '₸', decimalDigits: 0, locale: 'ru');
 
@@ -96,21 +99,23 @@ class _FinanceScreenState extends State<FinanceScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
+      // 🔥 Кнопка теперь ПРАВИЛЬНО внутри Scaffold
       floatingActionButton: (_data != null && _rawJson != null)
           ? FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context, 
-            MaterialPageRoute(builder: (_) => ChatScreen(
-              financeData: _data!, 
-              rawContext: _rawJson!
-            ))
-          );
-        },
-        label: const Text("AI Чат", style: TextStyle(color: Colors.white)),
-        icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-        backgroundColor: const Color(0xFF2E3A59),
-      )
+              onPressed: () {
+                Navigator.push(
+                  context, 
+                  MaterialPageRoute(builder: (_) => ChatScreen(
+                    financeData: _data!, 
+                    rawContext: _rawJson!,
+                    messages: _chatHistory, // Передаем историю
+                  ))
+                );
+              },
+              label: const Text("AI Чат", style: TextStyle(color: Colors.white)),
+              icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+              backgroundColor: const Color(0xFF2E3A59),
+            )
           : null,
       
       body: _isLoading
@@ -249,6 +254,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
               onPressed: () => setState(() {
                 _data = null;
                 _rawJson = null;
+                _chatHistory.clear();
               }),
               child: const Text("Загрузить другой файл"),
             ),
@@ -270,7 +276,6 @@ class _FunLoaderState extends State<FunLoader> {
   int _index = 0;
   late final Stream<int> _timerStream;
 
-  // Список фраз для развлечения
   final List<String> _loadingPhrases = [
     "🤖 ИИ надевает очки...",
     "🧐 Изучаем ваши траты на кофе...",
@@ -287,7 +292,6 @@ class _FunLoaderState extends State<FunLoader> {
   @override
   void initState() {
     super.initState();
-    // Меняем фразу каждые 2.5 секунды
     _timerStream = Stream.periodic(const Duration(milliseconds: 2500), (i) => i);
     _timerStream.listen((i) {
       if (mounted) {
@@ -306,7 +310,6 @@ class _FunLoaderState extends State<FunLoader> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Красивый индикатор (больше стандартного)
             const SizedBox(
               width: 60,
               height: 60,
@@ -317,8 +320,6 @@ class _FunLoaderState extends State<FunLoader> {
               ),
             ),
             const SizedBox(height: 40),
-            
-            // Анимированный текст
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 500),
               transitionBuilder: (Widget child, Animation<double> animation) {
@@ -344,7 +345,6 @@ class _FunLoaderState extends State<FunLoader> {
                 ),
               ),
             ),
-            
             const SizedBox(height: 10),
             Text(
               "Это может занять до 20 секунд",
