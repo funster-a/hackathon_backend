@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'welcome_screen.dart';
 import 'premium_screen.dart';
+import 'localization.dart'; // Импорт локализации
+import 'usage_manager.dart';
 
 class ProfileScreen extends StatefulWidget {
-  // Принимаем функцию для сброса данных, которую передадим с главного экрана
   final VoidCallback onLogout;
 
   const ProfileScreen({super.key, required this.onLogout});
@@ -14,26 +15,36 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool _notifications = true;
-  bool _faceId = false;
+  final UsageManager _usageManager = UsageManager();
+
+  @override
+  void initState() {
+    super.initState();
+    // Обновляем состояние при возврате на экран
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subTextColor = isDark ? Colors.white70 : Colors.grey[600];
+    return ValueListenableBuilder<Language>(
+      valueListenable: AppStrings.languageNotifier,
+      builder: (context, language, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final textColor = isDark ? Colors.white : Colors.black87;
+        final subTextColor = isDark ? Colors.white70 : Colors.grey[600];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Профиль", style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        elevation: 0,
-      ),
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(AppStrings.get('profile_title'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            centerTitle: true,
+            elevation: 0,
+          ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            // Аватар и Имя
             const CircleAvatar(
               radius: 50,
               backgroundColor: Color(0xFF2E3A59),
@@ -41,80 +52,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              "Амир Аханов", // Хардкод для соответствия PDF
-              style: GoogleFonts.inter(
-                fontSize: 24, 
-                fontWeight: FontWeight.bold,
-                color: textColor,
-              ),
+              "Амир Аханов",
+              style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
             ),
             Text(
               "amir.akhanov@gmail.com",
               style: GoogleFonts.inter(fontSize: 14, color: subTextColor),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 30),
 
-            // Карточка статуса
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2C2C2C) : Colors.blue[50],
-                borderRadius: BorderRadius.circular(16),
+            // 🔥 ВЫБОР ЯЗЫКА
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                AppStrings.get('settings_lang'),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.star_border, color: Colors.blue, size: 30),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Текущий план: Free",
-                        style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
-                      ),
-                      Text(
-                        "Лимит: 5 запросов/день",
-                        style: TextStyle(fontSize: 12, color: subTextColor),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumScreen()));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                    child: const Text("Upgrade"),
-                  ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<Language>(
+                segments: const [
+                  ButtonSegment(value: Language.ru, label: Text("Рус")),
+                  ButtonSegment(value: Language.kz, label: Text("Қаз")),
+                  ButtonSegment(value: Language.en, label: Text("Eng")),
                 ],
+                selected: {AppStrings.currentLanguage},
+                onSelectionChanged: (Set<Language> newSelection) {
+                  setState(() {
+                    // Обновляем язык глобально
+                    AppStrings.setLanguage(newSelection.first);
+                  });
+                },
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(MaterialState.selected)) {
+                      return const Color(0xFF2E3A59);
+                    }
+                    return null;
+                  }),
+                  foregroundColor: MaterialStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(MaterialState.selected)) {
+                      return Colors.white;
+                    }
+                    return isDark ? Colors.white : Colors.black;
+                  }),
+                ),
               ),
             ),
 
             const SizedBox(height: 30),
-            
-            // Настройки (Фейковые, просто для красоты)
-            _buildSwitchTile("Уведомления", "Отчеты о тратах", _notifications, (v) => setState(() => _notifications = v)),
-            _buildSwitchTile("Вход по Face ID", "Быстрый доступ", _faceId, (v) => setState(() => _faceId = v)),
-            
+
+            // Карточка статуса
+            FutureBuilder<Map<String, dynamic>>(
+              future: _getStatusInfo(),
+              builder: (context, snapshot) {
+                final isPremium = snapshot.data?['isPremium'] ?? false;
+                final remaining = snapshot.data?['remaining'] ?? 0;
+                
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF2C2C2C) : Colors.blue[50],
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isPremium ? Icons.star : Icons.star_border,
+                        color: isPremium ? Colors.amber : Colors.blue,
+                        size: 30,
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isPremium 
+                              ? AppStrings.get('status_premium')
+                              : AppStrings.get('status_free'),
+                            style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+                          ),
+                          Text(
+                            isPremium
+                              ? AppStrings.get('unlimited')
+                              : '${AppStrings.get('remaining')}: $remaining',
+                            style: TextStyle(fontSize: 12, color: subTextColor),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      if (!isPremium)
+                        ElevatedButton(
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const PremiumScreen()),
+                            );
+                            // Обновляем состояние после возврата
+                            if (mounted) setState(() {});
+                          },
+                          child: Text(AppStrings.get('upgrade')),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+
             const Divider(height: 40),
 
-            // Опасная зона
             ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.logout, color: Colors.red),
-              ),
-              title: const Text("Выйти из аккаунта", style: TextStyle(fontWeight: FontWeight.w600)),
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: Text(AppStrings.get('logout'), style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.red)),
               onTap: () {
-                // Сброс данных и выход
-                widget.onLogout(); 
-                
-                // Возврат на экран приветствия (удаляя все предыдущие экраны из истории)
+                widget.onLogout();
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const WelcomeScreen()),
                   (Route<dynamic> route) => false,
@@ -124,17 +177,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
+        );
+      },
     );
   }
 
-  Widget _buildSwitchTile(String title, String subtitle, bool value, Function(bool) onChanged) {
-    return SwitchListTile.adaptive(
-      contentPadding: EdgeInsets.zero,
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle),
-      value: value,
-      activeColor: const Color(0xFF2E3A59),
-      onChanged: onChanged,
-    );
+  Future<Map<String, dynamic>> _getStatusInfo() async {
+    final isPremium = await _usageManager.isPremium;
+    final remaining = await _usageManager.remainingAttempts;
+    return {
+      'isPremium': isPremium,
+      'remaining': remaining,
+    };
   }
 }

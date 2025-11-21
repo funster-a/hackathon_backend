@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'models.dart';
+import 'localization.dart';
 
 class ApiService {
   static String get _baseUrl {
@@ -37,11 +37,12 @@ return response.data;    } catch (e) {
         data: {
           "question": question,
           "context": fullJsonContext,
+          "language": AppStrings.languageCode, // Передаем текущий язык приложения
         },
       );
       return response.data['reply'];
     } catch (e) {
-      return "Ошибка связи с AI 😔";
+      return AppStrings.get('chat_error');
     }
   }
 }
