@@ -26,8 +26,6 @@ BASE_URL = "https://api.deepseek.com"
 
 client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url=BASE_URL)
 
-# --- MOCK ДАННЫЕ (ИДЕАЛЬНАЯ КОПИЯ ТВОЕЙ ВЫПИСКИ) ---
-# Если PDF не прочитается, мы отдадим это. Это данные Амира из файла.
 MOCK_AMIR_DATA = {
   "total_spent": 100165,
   "forecast_next_month": 115000,

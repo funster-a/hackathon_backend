@@ -43,27 +43,42 @@ class _FinanceScreenState extends State<FinanceScreen> {
   String? _error;
 
   Future<void> _pickAndUpload() async {
+    // Сбрасываем ошибку сразу, но загрузку ПОКА НЕ включаем
     setState(() {
-      _isLoading = true;
       _error = null;
     });
 
     try {
+      // 1. Сначала открываем выбор файла
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
       );
 
+      // 2. Если пользователь выбрал файл
       if (result != null) {
+        // ВОТ ТЕПЕРЬ включаем лоадер
+        setState(() {
+          _isLoading = true;
+        });
+
         File file = File(result.files.single.path!);
+        
+        // Отправляем на сервер
         final data = await _apiService.uploadStatement(file);
-        setState(() => _data = data);
-      } else {
-        setState(() => _isLoading = false);
-      }
+        
+        // Когда пришел ответ
+        setState(() {
+          _data = data;
+        });
+      } 
+      // Если result == null (нажал "Отмена"), мы просто ничего не делаем,
+      // лоадер не включался, всё ок.
+
     } catch (e) {
-      setState(() => _error = "Ошибка загрузки. Проверьте сервер (python main.py)");
+      setState(() => _error = "Не удалось загрузить. Проверьте сервер.");
     } finally {
+      // Выключаем лоадер в любом случае
       setState(() => _isLoading = false);
     }
   }
@@ -88,16 +103,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 
   Widget _buildLoading() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 20),
-          Text("ИИ анализирует расходы...", style: GoogleFonts.inter(fontSize: 16)),
-        ],
-      ),
-    );
+    return const FunLoader();
   }
 
   Widget _buildUploadButton() {
@@ -226,6 +232,104 @@ class _FinanceScreenState extends State<FinanceScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class FunLoader extends StatefulWidget {
+  const FunLoader({super.key});
+
+  @override
+  State<FunLoader> createState() => _FunLoaderState();
+}
+
+class _FunLoaderState extends State<FunLoader> {
+  int _index = 0;
+  late final Stream<int> _timerStream;
+
+  // Список фраз для развлечения
+  final List<String> _loadingPhrases = [
+    "🤖 ИИ надевает очки...",
+    "🧐 Изучаем ваши траты на кофе...",
+    "💸 Ищем, куда делись деньги...",
+    "🧹 Выметаем скрытые комиссии...",
+    "📊 Рисуем красивые графики...",
+    "🚀 Подогреваем сервера...",
+    "🤔 Вспоминаем курс тенге...",
+    "🍕 Может, заказать пиццу пока ждем?",
+    "🕵️‍♂️ Детектим подписки...",
+    "✨ Почти готово...",
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Меняем фразу каждые 2.5 секунды
+    _timerStream = Stream.periodic(const Duration(milliseconds: 2500), (i) => i);
+    _timerStream.listen((i) {
+      if (mounted) {
+        setState(() {
+          _index = (i + 1) % _loadingPhrases.length;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Красивый индикатор (больше стандартного)
+            const SizedBox(
+              width: 60,
+              height: 60,
+              child: CircularProgressIndicator(
+                strokeWidth: 6,
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2E3A59)),
+                backgroundColor: Colors.black12,
+              ),
+            ),
+            const SizedBox(height: 40),
+            
+            // Анимированный текст
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.0, 0.5),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
+              child: Text(
+                _loadingPhrases[_index],
+                key: ValueKey<String>(_loadingPhrases[_index]),
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF2E3A59),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 10),
+            Text(
+              "Это может занять до 20 секунд",
+              style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
       ),
     );
   }
