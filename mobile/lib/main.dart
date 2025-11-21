@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'api_service.dart';
 import 'models.dart';
+import 'chat_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,6 +40,7 @@ class FinanceScreen extends StatefulWidget {
 class _FinanceScreenState extends State<FinanceScreen> {
   final ApiService _apiService = ApiService();
   FinanceData? _data;
+  Map<String, dynamic>? _rawJson;
   bool _isLoading = false;
   String? _error;
 
@@ -65,11 +67,11 @@ class _FinanceScreenState extends State<FinanceScreen> {
         File file = File(result.files.single.path!);
         
         // Отправляем на сервер
-        final data = await _apiService.uploadStatement(file);
-        
+        final jsonResponse = await _apiService.uploadStatement(file);
         // Когда пришел ответ
         setState(() {
-          _data = data;
+          _rawJson = jsonResponse; // Сохраняем сырой JSON для чата
+          _data = FinanceData.fromJson(jsonResponse); // Создаем FinanceData из JSON
         });
       } 
       // Если result == null (нажал "Отмена"), мы просто ничего не делаем,
@@ -83,7 +85,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     final kztFormatter = NumberFormat.currency(symbol: '₸', decimalDigits: 0, locale: 'ru');
 
@@ -94,11 +96,28 @@ class _FinanceScreenState extends State<FinanceScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
+      floatingActionButton: (_data != null && _rawJson != null)
+          ? FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context, 
+            MaterialPageRoute(builder: (_) => ChatScreen(
+              financeData: _data!, 
+              rawContext: _rawJson!
+            ))
+          );
+        },
+        label: const Text("AI Чат", style: TextStyle(color: Colors.white)),
+        icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+        backgroundColor: const Color(0xFF2E3A59),
+      )
+          : null,
+      
       body: _isLoading
           ? _buildLoading()
           : _data == null
-          ? _buildUploadButton()
-          : _buildDashboard(kztFormatter),
+              ? _buildUploadButton()
+              : _buildDashboard(kztFormatter),
     );
   }
 
@@ -227,7 +246,10 @@ class _FinanceScreenState extends State<FinanceScreen> {
           const SizedBox(height: 40),
           Center(
             child: TextButton(
-              onPressed: () => setState(() => _data = null),
+              onPressed: () => setState(() {
+                _data = null;
+                _rawJson = null;
+              }),
               child: const Text("Загрузить другой файл"),
             ),
           ),

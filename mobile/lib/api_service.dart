@@ -3,33 +3,40 @@ import 'package:dio/dio.dart';
 import 'models.dart';
 
 class ApiService {
-  // Для Android Эмулятора адрес 10.0.2.2 обязателен!
-  static const String _baseUrl = 'http://10.0.2.2:8000';
-
+  static const String _baseUrl = 'http://10.0.2.2:8000'; // Или твой IP для iOS
+  
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 60), // Ждем ответ до 60 сек
+    receiveTimeout: const Duration(seconds: 60),
   ));
 
-  Future<FinanceData> uploadStatement(File file) async {
+  // Загрузка файла (уже было)
+  Future<Map<String, dynamic>> uploadStatement(File file) async {
+    // ... (твой старый код здесь) ...
     try {
       String fileName = file.path.split('/').last;
       FormData formData = FormData.fromMap({
         "file": await MultipartFile.fromFile(file.path, filename: fileName),
       });
-
-      print("📤 Отправка файла на $_baseUrl/analyze...");
-
-      Response response = await _dio.post(
-        '$_baseUrl/analyze',
-        data: formData,
-      );
-
-      print("✅ Ответ получен!");
-      return FinanceData.fromJson(response.data);
-    } catch (e) {
-      print("❌ Ошибка соединения: $e");
+      Response response = await _dio.post('$_baseUrl/analyze', data: formData);
+return response.data;    } catch (e) {
       rethrow;
+    }
+  }
+
+  // 👇 НОВЫЙ МЕТОД ДЛЯ ЧАТА 👇
+  Future<String> sendChatMessage(String question, Map<String, dynamic> fullJsonContext) async {
+    try {
+      final response = await _dio.post(
+        '$_baseUrl/chat',
+        data: {
+          "question": question,
+          "context": fullJsonContext,
+        },
+      );
+      return response.data['reply'];
+    } catch (e) {
+      return "Ошибка связи с AI 😔";
     }
   }
 }
