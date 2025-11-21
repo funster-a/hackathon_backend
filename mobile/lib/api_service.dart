@@ -17,14 +17,20 @@ class ApiService {
 
   // Загрузка файла (уже было)
   Future<Map<String, dynamic>> uploadStatement(File file) async {
-    // ... (твой старый код здесь) ...
     try {
       String fileName = file.path.split('/').last;
       FormData formData = FormData.fromMap({
         "file": await MultipartFile.fromFile(file.path, filename: fileName),
       });
-      Response response = await _dio.post('$_baseUrl/analyze', data: formData);
-return response.data;    } catch (e) {
+      // Передаем текущий язык приложения
+      final language = AppStrings.languageCode;
+      Response response = await _dio.post(
+        '$_baseUrl/analyze',
+        data: formData,
+        queryParameters: {'language': language},
+      );
+      return response.data;
+    } catch (e) {
       rethrow;
     }
   }

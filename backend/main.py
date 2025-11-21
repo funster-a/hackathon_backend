@@ -38,14 +38,53 @@ MOCK_AMIR_DATA = {
     {"name": "Прочее", "amount": 19765, "percent": 21, "color": "0xFF9E9E9E"}
   ],
   "subscriptions": [
-    {"name": "Spotify Premium", "cost": 4282},
-    {"name": "Kaspi Magazin (Рассрочка)", "cost": 5490}
+    {"name": "Spotify Premium", "cost": 4282}
   ],
-  "advice": "Амир, мы заметили подписку на Spotify (4282 ₸) и частые траты в Steam. В Магнуме вы оставили 45% бюджета. Рекомендуем оформить карту Magnum Club для бонусов."
+  "advice": "Амир, мы заметили подписку на Spotify (4282 ₸) и частые траты в Steam. В Магнуме вы оставили 45% бюджета. Рекомендуем оформить карту Magnum Club для бонусов.",
+  "transactions": [
+    {"date": "01.03.2024", "amount": 1500, "description": "Magnum", "category": "Продукты (Magnum)"},
+    {"date": "02.03.2024", "amount": 850, "description": "Yandex Go", "category": "Такси (Yandex)"},
+    {"date": "03.03.2024", "amount": 4282, "description": "Spotify Premium", "category": "Прочее"},
+    {"date": "05.03.2024", "amount": 3200, "description": "Steam", "category": "Развлечения (Steam/Kino)"},
+    {"date": "07.03.2024", "amount": 2100, "description": "Bahandi", "category": "Фастфуд (Тандыр/Bahandi)"},
+    {"date": "10.03.2024", "amount": 4500, "description": "Magnum", "category": "Продукты (Magnum)"},
+    {"date": "12.03.2024", "amount": 1200, "description": "Yandex Go", "category": "Такси (Yandex)"},
+    {"date": "15.03.2024", "amount": 5490, "description": "Kaspi Magazin", "category": "Прочее"}
+  ]
 }
 
-def analyze_kaspi_statement(text):
-    system_prompt = """
+def analyze_kaspi_statement(text, language="ru"):
+    # Определяем язык для категорий
+    lang_map = {
+        "ru": {
+            "products": "Продукты",
+            "taxi": "Такси",
+            "entertainment": "Развлечения",
+            "fastfood": "Фастфуд",
+            "credit": "Рассрочка",
+            "other": "Прочее"
+        },
+        "kz": {
+            "products": "Тауарлар",
+            "taxi": "Такси",
+            "entertainment": "Ойын-сауық",
+            "fastfood": "Жылдам тағам",
+            "credit": "Бөліп төлеу",
+            "other": "Басқа"
+        },
+        "en": {
+            "products": "Products",
+            "taxi": "Taxi",
+            "entertainment": "Entertainment",
+            "fastfood": "Fast Food",
+            "credit": "Credit",
+            "other": "Other"
+        }
+    }
+    
+    lang_names = lang_map.get(language, lang_map["ru"])
+    
+    system_prompt = f"""
     Ты — финансовый аналитик. Твоя задача - распарсить выписку Kaspi Gold.
     
     ОСОБЕННОСТИ:
@@ -54,33 +93,63 @@ def analyze_kaspi_statement(text):
     
     🛑 ЖЕЛЕЗНЫЕ ПРАВИЛА (Strict Rules):
     
-    1. 💳 ПОДПИСКИ (Только цифровые сервисы):
-       - Включай сюда: "Yandex Plus", "Spotify", "Netflix", "Apple", "Ivi", "Kinopoisk", "Google Storage".
-       - ⛔ ЗАПРЕЩЕНО включать сюда: "Kaspi Red", "Kaspi Magazin", "Credit", "Рассрочка". Это НЕ подписки!
+    1. 💳 ПОДПИСКИ (ТОЛЬКО цифровые сервисы, НЕ кредиты/рассрочки):
+       - Включай сюда ТОЛЬКО: "Yandex Plus", "Spotify", "Netflix", "Apple", "Ivi", "Kinopoisk", "Google Storage", "YouTube Premium".
+       - ⛔ СТРОГО ЗАПРЕЩЕНО включать сюда: "Kaspi Red", "Kaspi Magazin", "Credit", "Рассрочка", "Погашение кредита", "TOO Kaspi Magazin". Это НЕ подписки, это кредиты/рассрочки!
+       - Если видишь Kaspi Magazin или Kaspi Red - это НЕ подписка, это кредит/рассрочка!
        
-    2. ⏳ РАССРОЧКА (Отдельная категория!):
-       - Если видишь: "Kaspi Red", "Pay for Kaspi Red", "Kaspi Magazin", "TOO Kaspi Magazin", "Погашение кредита".
-       - Создай для них отдельную категорию "Рассрочка" (или "Кредиты") в списке categories.
+    2. ⏳ РАССРОЧКА/КРЕДИТЫ (Отдельная категория в categories, НЕ в subscriptions!):
+       - Если видишь: "Kaspi Red", "Pay for Kaspi Red", "Kaspi Magazin", "TOO Kaspi Magazin", "Погашение кредита", "Credit".
+       - Создай для них отдельную категорию "{lang_names['credit']}" в списке categories.
        - Цвет для этой категории: "FF5722" (Оранжевый/Красный).
+       - НИКОГДА не добавляй их в subscriptions!
        
     3. 🚕 ТРАНСПОРТ: 
        - "Yandex Go" (именно Go!), "Uber", "Onay", "InDrive".
+       - Название категории: "{lang_names['taxi']} (Yandex)"
        
     4. 🛍 ПРОДУКТЫ/ЕДА:
        - "Magnum", "Small", "Galmart", "Glovo", "Wolt", "Burger", "Bahandi".
+       - Название категории: "{lang_names['products']} (Magnum)" или "{lang_names['products']}"
+       
+    5. 🎬 РАЗВЛЕЧЕНИЯ:
+       - "Steam", "Kino", "Cinema", "Games"
+       - Название категории: "{lang_names['entertainment']} (Steam/Kino)"
+       
+    6. 🍔 ФАСТФУД:
+       - "Bahandi", "Tandyr", "Burger", "Pizza"
+       - Название категории: "{lang_names['fastfood']} (Тандыр/Bahandi)"
 
     ЗАДАЧА:
-    Верни JSON. В поле `categories` должна появиться категория "Рассрочка", если есть соответствующие траты.
-    В поле `subscriptions` НЕ ДОЛЖНО быть Каспи магазина.
+    Верни JSON. В поле `categories` должна появиться категория "{lang_names['credit']}", если есть соответствующие траты.
+    В поле `subscriptions` НЕ ДОЛЖНО быть Каспи магазина, Kaspi Red, кредитов или рассрочек - ТОЛЬКО цифровые подписки!
     
     Структура JSON:
-    {
+    {{
       "total_spent": float,
       "forecast_next_month": float,
-      "categories": [{"name": "string", "amount": float, "percent": float, "color": "hex"}],
-      "subscriptions": [{"name": "string", "cost": float}],
-      "advice": "Совет"
-    }
+      "categories": [{{"name": "string", "name_ru": "string", "name_kz": "string", "name_en": "string", "amount": float, "percent": float, "color": "hex"}}],
+      "subscriptions": [{{"name": "string", "cost": float}}],
+      "advice": "Совет",
+      "transactions": [
+        {{
+          "date": "DD.MM.YYYY",
+          "amount": float,
+          "description": "string",
+          "category": "string"
+        }}
+      ]
+    }}
+    
+    ВАЖНО:
+    - Каждая категория должна иметь поля name, name_ru, name_kz, name_en для мультиязычности
+    - name - это название на текущем языке ({language})
+    - В поле subscriptions ТОЛЬКО цифровые подписки (Spotify, Netflix и т.д.), НЕ Kaspi Magazin!
+    - Извлекай ВСЕ транзакции из выписки (расходы, не пополнения)
+    - Формат даты: DD.MM.YYYY (например, "15.03.2024")
+    - amount должен быть положительным числом (сумма расхода)
+    - description - краткое описание транзакции (например, "Magnum", "Yandex Go", "Spotify Premium")
+    - category - категория из списка categories (используй name на текущем языке)
     """
 
     try:
@@ -91,16 +160,25 @@ def analyze_kaspi_statement(text):
                 {"role": "user", "content": f"Текст выписки:\n{text[:5000]}"}
             ],
             temperature=0.1,
-            max_tokens=1500
+            max_tokens=2000
         )
         clean_json = response.choices[0].message.content.replace("```json", "").replace("```", "").strip()
-        return json.loads(clean_json)
+        result = json.loads(clean_json)
+        
+        # Фильтруем подписки - удаляем Kaspi Magazin и кредиты
+        if "subscriptions" in result and isinstance(result["subscriptions"], list):
+            result["subscriptions"] = [
+                sub for sub in result["subscriptions"]
+                if sub.get("name", "").lower() not in ["kaspi magazin", "kaspi red", "рассрочка", "credit", "погашение кредита"]
+            ]
+        
+        return result
     except Exception as e:
         print(f"AI Error: {e}")
         return None
 
 @app.post("/analyze")
-async def analyze_statement(file: UploadFile = File(...)):
+async def analyze_statement(file: UploadFile = File(...), language: str = "ru"):
     full_text = ""
     try:
         # Читаем PDF
@@ -118,8 +196,8 @@ async def analyze_statement(file: UploadFile = File(...)):
     if len(full_text) < 50:
         return MOCK_AMIR_DATA
 
-    # Отправляем в AI
-    result = analyze_kaspi_statement(full_text)
+    # Отправляем в AI с языком
+    result = analyze_kaspi_statement(full_text, language)
     
     # Если AI сломался - отдаем мок
     if not result:
