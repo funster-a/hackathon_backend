@@ -12,6 +12,8 @@ import 'welcome_screen.dart';
 import 'premium_screen.dart';
 import 'theme_helper.dart';
 import 'profile_screen.dart';
+import 'localization.dart';
+import 'usage_manager.dart';
 
 // Глобальный ключ для доступа к MyAppState из любого места
 final GlobalKey<_MyAppState> appStateKey = GlobalKey<_MyAppState>();
@@ -65,52 +67,58 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'FinHack',
-      
-      // ☀️ СВЕТЛАЯ ТЕМА (Стандартная)
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E3A59),
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF5F5F7),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 0,
-        ),
-        cardColor: Colors.white,
-        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
-      ),
+    // 🔥 Слушаем изменения языка
+    return ValueListenableBuilder<Language>(
+      valueListenable: AppStrings.languageNotifier,
+      builder: (context, language, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'FinHack',
+          
+          // ☀️ СВЕТЛАЯ ТЕМА (Стандартная)
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.light,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF2E3A59),
+              brightness: Brightness.light,
+            ),
+            scaffoldBackgroundColor: const Color(0xFFF5F5F7),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              elevation: 0,
+            ),
+            cardColor: Colors.white,
+            textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
+          ),
 
-      // 🌑 ТЕМНАЯ ТЕМА (Новая!)
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E3A59),
-          brightness: Brightness.dark,
-          primary: const Color(0xFF6C84B8), // Чуть светлее для темного фона
-          secondary: Colors.amber,
-        ),
-        scaffoldBackgroundColor: const Color(0xFF121212), // Почти черный фон
-        cardColor: const Color(0xFF1E1E1E), // Темно-серые карточки
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E1E1E),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
-      ),
+          // 🌑 ТЕМНАЯ ТЕМА (Новая!)
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF2E3A59),
+              brightness: Brightness.dark,
+              primary: const Color(0xFF6C84B8), // Чуть светлее для темного фона
+              secondary: Colors.amber,
+            ),
+            scaffoldBackgroundColor: const Color(0xFF121212), // Почти черный фон
+            cardColor: const Color(0xFF1E1E1E), // Темно-серые карточки
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF1E1E1E),
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+          ),
 
-      // ⚙️ Ручное переключение темы
-      themeMode: _themeMode, 
-      
-      home: const WelcomeScreen(),
+          // ⚙️ Ручное переключение темы
+          themeMode: _themeMode, 
+          
+          home: const WelcomeScreen(),
+        );
+      },
     );
   }
 }
@@ -134,6 +142,43 @@ class _FinanceScreenState extends State<FinanceScreen> {
     if (!mounted) return;
     setState(() => _error = null);
 
+    // Проверяем лимит перед загрузкой
+    final usageManager = UsageManager();
+    final canProceed = await usageManager.canAction();
+    
+    if (!canProceed) {
+      // Показываем диалог о лимите
+      if (!mounted) return;
+      final shouldGoToPremium = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(AppStrings.get('limit_exceeded_title')),
+          content: Text(AppStrings.get('limit_exceeded_message')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(AppStrings.get('cancel')),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2E3A59),
+              ),
+              child: Text(AppStrings.get('go_to_premium'), style: const TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+      
+      if (shouldGoToPremium == true && mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PremiumScreen()),
+        );
+      }
+      return;
+    }
+
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -146,6 +191,9 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
         File file = File(result.files.single.path!);
         final jsonResponse = await _apiService.uploadStatement(file);
+        
+        // Увеличиваем счетчик использований только при успешной загрузке
+        await usageManager.incrementUsage();
         
         if (!mounted) return;
         setState(() {
@@ -175,7 +223,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("FinHack", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: ValueListenableBuilder<Language>(
+          valueListenable: AppStrings.languageNotifier,
+          builder: (context, language, child) {
+            return Text(AppStrings.get('app_title'), style: const TextStyle(fontWeight: FontWeight.bold));
+          },
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.person_outline),
@@ -218,20 +271,25 @@ class _FinanceScreenState extends State<FinanceScreen> {
         ],
       ),
       floatingActionButton: (_data != null && _rawJson != null)
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.push(
-                  context, 
-                  MaterialPageRoute(builder: (_) => ChatScreen(
-                    financeData: _data!, 
-                    rawContext: _rawJson!,
-                    messages: _chatHistory,
-                  ))
+          ? ValueListenableBuilder<Language>(
+              valueListenable: AppStrings.languageNotifier,
+              builder: (context, language, child) {
+                return FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (_) => ChatScreen(
+                        financeData: _data!, 
+                        rawContext: _rawJson!,
+                        messages: _chatHistory,
+                      ))
+                    );
+                  },
+                  label: Text(AppStrings.get('ai_chat_button'), style: const TextStyle(color: Colors.white)),
+                  icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+                  backgroundColor: const Color(0xFF2E3A59),
                 );
               },
-              label: const Text("AI Чат", style: TextStyle(color: Colors.white)),
-              icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-              backgroundColor: const Color(0xFF2E3A59),
             )
           : null,
       
@@ -244,60 +302,68 @@ class _FinanceScreenState extends State<FinanceScreen> {
   }
 
   Widget _buildUploadButton() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.upload_file, size: 80, color: Colors.blueGrey[200]),
-          const SizedBox(height: 20),
-          const Text("Загрузите выписку Kaspi (PDF)", style: TextStyle(fontSize: 18)),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-            ),
-          const SizedBox(height: 30),
-          ElevatedButton.icon(
-            onPressed: _pickAndUpload,
-            icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text("Выбрать файл", style: TextStyle(color: Colors.white)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2E3A59),
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-            ),
+    return ValueListenableBuilder<Language>(
+      valueListenable: AppStrings.languageNotifier,
+      builder: (context, language, child) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.upload_file, size: 80, color: Colors.blueGrey[200]),
+              const SizedBox(height: 20),
+              Text(AppStrings.get('upload_screen_title'), style: const TextStyle(fontSize: 18)),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+                ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: _pickAndUpload,
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: Text(AppStrings.get('upload_screen_btn'), style: const TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E3A59),
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildDashboard(NumberFormat fmt, bool isDark) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF2E3A59), Color(0xFF4B6CB7)]),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Всего потрачено", style: TextStyle(color: Colors.white70)),
-                Text(fmt.format(_data!.totalSpent), style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 10),
-                Text("Прогноз: ${fmt.format(_data!.forecast)}", style: const TextStyle(color: Colors.white70)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
+    return ValueListenableBuilder<Language>(
+      valueListenable: AppStrings.languageNotifier,
+      builder: (context, language, child) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [Color(0xFF2E3A59), Color(0xFF4B6CB7)]),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(AppStrings.get('total_spent'), style: const TextStyle(color: Colors.white70)),
+                    Text(fmt.format(_data!.totalSpent), style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    Text("${AppStrings.get('forecast')}: ${fmt.format(_data!.forecast)}", style: const TextStyle(color: Colors.white70)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
 
-          const Text("Анализ категорий", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 20),
+              Text(AppStrings.get('categories_title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
           SizedBox(
             height: 200,
             child: PieChart(
@@ -348,7 +414,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
           const SizedBox(height: 20),
 
           if (_data!.subscriptions.isNotEmpty) ...[
-            const Text("Подписки", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(AppStrings.get('subs_title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ..._data!.subscriptions.map((sub) => ListTile(
               leading: const Icon(Icons.subscriptions, color: Colors.red),
               title: Text(sub.name),
@@ -356,23 +422,25 @@ class _FinanceScreenState extends State<FinanceScreen> {
             )),
           ],
 
-          const SizedBox(height: 40),
-          Center(
-            child: TextButton(
-              onPressed: () {
-                if (mounted) {
-                  setState(() {
-                    _data = null;
-                    _rawJson = null;
-                    _chatHistory.clear();
-                  });
-                }
-              },
-              child: const Text("Загрузить другой файл"),
-            ),
+              const SizedBox(height: 40),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    if (mounted) {
+                      setState(() {
+                        _data = null;
+                        _rawJson = null;
+                        _chatHistory.clear();
+                      });
+                    }
+                  },
+                  child: Text(AppStrings.get('upload_btn')),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

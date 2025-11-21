@@ -1,0 +1,299 @@
+import 'package:flutter/material.dart';
+
+enum Language { ru, kz, en }
+
+class AppStrings {
+  // 🔥 Магия реактивности: слушаем изменения языка
+  static final ValueNotifier<Language> languageNotifier = ValueNotifier(Language.ru);
+
+  static Language get currentLanguage => languageNotifier.value;
+
+  static void setLanguage(Language lang) {
+    languageNotifier.value = lang;
+  }
+
+  // СЛОВАРЬ ПЕРЕВОДОВ
+  static final Map<String, Map<Language, String>> _data = {
+    // --- ГЛАВНЫЙ ЭКРАН ---
+    'total_spent': {
+      Language.ru: 'Всего потрачено',
+      Language.kz: 'Жалпы шығын',
+      Language.en: 'Total Spent',
+    },
+    'forecast': {
+      Language.ru: 'Прогноз',
+      Language.kz: 'Болжам',
+      Language.en: 'Forecast',
+    },
+    'categories_title': {
+      Language.ru: 'Анализ категорий',
+      Language.kz: 'Санаттар талдауы',
+      Language.en: 'Categories Analysis',
+    },
+    'advice_title': {
+      Language.ru: 'Совет AI',
+      Language.kz: 'AI Кеңесі',
+      Language.en: 'AI Advice',
+    },
+    'subs_title': {
+      Language.ru: 'Подписки',
+      Language.kz: 'Жазылымдар',
+      Language.en: 'Subscriptions',
+    },
+    'upload_btn': {
+      Language.ru: 'Загрузить другой файл',
+      Language.kz: 'Басқа файлды жүктеу',
+      Language.en: 'Upload another file',
+    },
+    'upload_screen_title': {
+      Language.ru: 'Загрузите выписку Kaspi (PDF)',
+      Language.kz: 'Kaspi үзіндісін жүктеңіз (PDF)',
+      Language.en: 'Upload Kaspi Statement (PDF)',
+    },
+    'upload_screen_btn': {
+      Language.ru: 'Выбрать файл',
+      Language.kz: 'Файлды таңдау',
+      Language.en: 'Select File',
+    },
+    
+    // --- ЧАТ ---
+    'chat_title': {
+      Language.ru: 'AI Ассистент',
+      Language.kz: 'AI Көмекші',
+      Language.en: 'AI Assistant',
+    },
+    'chat_hint': {
+      Language.ru: 'Спроси о финансах...',
+      Language.kz: 'Қаржы туралы сұраңыз...',
+      Language.en: 'Ask about finances...',
+    },
+    
+    // --- ПРОФИЛЬ ---
+    'profile_title': {
+      Language.ru: 'Профиль',
+      Language.kz: 'Профиль',
+      Language.en: 'Profile',
+    },
+    'settings_lang': {
+      Language.ru: 'Язык приложения',
+      Language.kz: 'Қолданба тілі',
+      Language.en: 'App Language',
+    },
+    'logout': {
+      Language.ru: 'Выйти из аккаунта',
+      Language.kz: 'Шығу',
+      Language.en: 'Log Out',
+    },
+    'status_free': {
+      Language.ru: 'Статус: Бесплатный',
+      Language.kz: 'Статус: Тегін',
+      Language.en: 'Status: Free',
+    },
+    'status_premium': {
+      Language.ru: 'Статус: PRO',
+      Language.kz: 'Статус: PRO',
+      Language.en: 'Status: PRO',
+    },
+    'limit_requests': {
+      Language.ru: 'Лимит: 5 запросов',
+      Language.kz: 'Шектеу: 5 сұрау',
+      Language.en: 'Limit: 5 requests',
+    },
+    'remaining': {
+      Language.ru: 'Осталось',
+      Language.kz: 'Қалды',
+      Language.en: 'Remaining',
+    },
+    'unlimited': {
+      Language.ru: 'Безлимит',
+      Language.kz: 'Шексіз',
+      Language.en: 'Unlimited',
+    },
+    'upgrade': {
+      Language.ru: 'Улучшить',
+      Language.kz: 'Жақсарту',
+      Language.en: 'Upgrade',
+    },
+    
+    // --- WELCOME SCREEN ---
+    'welcome_title': {
+      Language.ru: 'FinHack AI',
+      Language.kz: 'FinHack AI',
+      Language.en: 'FinHack AI',
+    },
+    'welcome_subtitle': {
+      Language.ru: 'Твой умный финансовый ассистент',
+      Language.kz: 'Сенің ақылды қаржы көмекшің',
+      Language.en: 'Your smart financial assistant',
+    },
+    'welcome_feature1': {
+      Language.ru: 'Загрузи выписку Kaspi PDF',
+      Language.kz: 'Kaspi үзіндісін PDF жүкте',
+      Language.en: 'Upload Kaspi statement PDF',
+    },
+    'welcome_feature2': {
+      Language.ru: 'Получи аналитику и советы',
+      Language.kz: 'Талдау мен кеңестер алыңыз',
+      Language.en: 'Get analytics and advice',
+    },
+    'welcome_feature3': {
+      Language.ru: 'Общайся с AI о финансах',
+      Language.kz: 'AI-мен қаржы туралы сөйлес',
+      Language.en: 'Chat with AI about finances',
+    },
+    'welcome_button': {
+      Language.ru: 'Начать анализ',
+      Language.kz: 'Талдауды бастау',
+      Language.en: 'Start Analysis',
+    },
+    
+    // --- PREMIUM SCREEN ---
+    'premium_title': {
+      Language.ru: 'FinHack PRO',
+      Language.kz: 'FinHack PRO',
+      Language.en: 'FinHack PRO',
+    },
+    'premium_subtitle': {
+      Language.ru: 'Разблокируй полную мощь AI',
+      Language.kz: 'AI-дың толық қуатын ашыңыз',
+      Language.en: 'Unlock the full power of AI',
+    },
+    'premium_feature1': {
+      Language.ru: 'Безлимитные вопросы к AI',
+      Language.kz: 'AI-ға шексіз сұрақтар',
+      Language.en: 'Unlimited AI questions',
+    },
+    'premium_feature2': {
+      Language.ru: 'Глубокий анализ долгов',
+      Language.kz: 'Қарыздарды терең талдау',
+      Language.en: 'Deep debt analysis',
+    },
+    'premium_feature3': {
+      Language.ru: 'Экспорт отчетов в Excel',
+      Language.kz: 'Есептерді Excel-ге экспорттау',
+      Language.en: 'Export reports to Excel',
+    },
+    'premium_feature4': {
+      Language.ru: 'Семейный доступ',
+      Language.kz: 'Отбасылық қол жетімділік',
+      Language.en: 'Family access',
+    },
+    'premium_price': {
+      Language.ru: '990 ₸ / месяц',
+      Language.kz: '990 ₸ / ай',
+      Language.en: '990 ₸ / month',
+    },
+    'premium_trial': {
+      Language.ru: 'Первые 7 дней бесплатно',
+      Language.kz: 'Алғашқы 7 күн тегін',
+      Language.en: 'First 7 days free',
+    },
+    'premium_button': {
+      Language.ru: 'Оформить подписку',
+      Language.kz: 'Жазылымды рәсімдеу',
+      Language.en: 'Subscribe',
+    },
+    'premium_demo_success': {
+      Language.ru: 'Демо режим: Покупка успешна!',
+      Language.kz: 'Демо режим: Сатып алу сәтті!',
+      Language.en: 'Demo mode: Purchase successful!',
+    },
+    
+    // --- CHAT SCREEN ---
+    'chat_typing': {
+      Language.ru: 'AI печатает...',
+      Language.kz: 'AI теріп жатыр...',
+      Language.en: 'AI typing...',
+    },
+    'chat_suggestion1': {
+      Language.ru: '📉 Как мне сэкономить?',
+      Language.kz: '📉 Қалай үнемдеуге болады?',
+      Language.en: '📉 How can I save money?',
+    },
+    'chat_suggestion2': {
+      Language.ru: '🏆 Топ моих расходов?',
+      Language.kz: '🏆 Менің шығындарымның топы?',
+      Language.en: '🏆 Top of my expenses?',
+    },
+    'chat_suggestion3': {
+      Language.ru: '🔮 Прогноз на месяц',
+      Language.kz: '🔮 Айға болжам',
+      Language.en: '🔮 Forecast for the month',
+    },
+    'chat_suggestion4': {
+      Language.ru: '🍔 Сколько ушло на еду?',
+      Language.kz: '🍔 Тағамға қанша кетті?',
+      Language.en: '🍔 How much spent on food?',
+    },
+    'chat_suggestion5': {
+      Language.ru: '🚕 Много ли я трачу на такси?',
+      Language.kz: '🚕 Таксиге көп жұмсаймын ба?',
+      Language.en: '🚕 Do I spend a lot on taxis?',
+    },
+    'chat_suggestion6': {
+      Language.ru: '💳 Есть ли скрытые подписки?',
+      Language.kz: '💳 Жасырын жазылымдар бар ма?',
+      Language.en: '💳 Are there hidden subscriptions?',
+    },
+    'chat_error': {
+      Language.ru: 'Ошибка связи с AI 😔',
+      Language.kz: 'AI-мен байланыс қатесі 😔',
+      Language.en: 'AI connection error 😔',
+    },
+    
+    // --- MAIN SCREEN ---
+    'ai_chat_button': {
+      Language.ru: 'AI Чат',
+      Language.kz: 'AI Чат',
+      Language.en: 'AI Chat',
+    },
+    'app_title': {
+      Language.ru: 'FinHack',
+      Language.kz: 'FinHack',
+      Language.en: 'FinHack',
+    },
+    
+    // --- LIMIT DIALOGS ---
+    'limit_exceeded_title': {
+      Language.ru: 'Лимит исчерпан',
+      Language.kz: 'Шектеу аяқталды',
+      Language.en: 'Limit Exceeded',
+    },
+    'limit_exceeded_message': {
+      Language.ru: 'Вы использовали все бесплатные действия. Перейдите на PRO для безлимитного доступа.',
+      Language.kz: 'Сіз барлық тегін әрекеттерді пайдаландыңыз. Шексіз қол жетімділік үшін PRO-ға өтіңіз.',
+      Language.en: 'You have used all free actions. Upgrade to PRO for unlimited access.',
+    },
+    'go_to_premium': {
+      Language.ru: 'Перейти на PRO',
+      Language.kz: 'PRO-ға өту',
+      Language.en: 'Go to PRO',
+    },
+    'cancel': {
+      Language.ru: 'Отмена',
+      Language.kz: 'Болдырмау',
+      Language.en: 'Cancel',
+    },
+    'premium_activated': {
+      Language.ru: 'Вы перешли на PRO!',
+      Language.kz: 'Сіз PRO-ға өттіңіз!',
+      Language.en: 'You upgraded to PRO!',
+    },
+  };
+
+  static String get(String key) {
+    return _data[key]?[currentLanguage] ?? key;
+  }
+  
+  // Получить код языка для API (ru, kz, en)
+  static String get languageCode {
+    switch (currentLanguage) {
+      case Language.ru:
+        return 'ru';
+      case Language.kz:
+        return 'kz';
+      case Language.en:
+        return 'en';
+    }
+  }
+}
