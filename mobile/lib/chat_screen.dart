@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'api_service.dart';
 import 'models.dart';
+import 'theme_helper.dart';
 
 class ChatScreen extends StatefulWidget {
   final FinanceData financeData;
@@ -23,7 +24,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ApiService _apiService = ApiService();
   bool _isTyping = false;
-
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -66,16 +66,32 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
+      // Фон берется из темы (белый или черный)
       appBar: AppBar(
-        title: Text("AI Ассистент", style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.black)),
-        backgroundColor: Colors.white,
-        elevation: 0,
+        title: Text("AI Ассистент", style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          // Кнопка переключения темы
+          StatefulBuilder(
+            builder: (context, setState) {
+              return IconButton(
+                icon: Icon(getThemeIcon()),
+                tooltip: 'Переключить тему',
+                onPressed: () {
+                  toggleTheme();
+                  // Принудительно обновляем иконку
+                  setState(() {});
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -103,21 +119,23 @@ class _ChatScreenState extends State<ChatScreen> {
                     padding: const EdgeInsets.all(14),
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
                     decoration: BoxDecoration(
-                      color: isUser ? const Color(0xFF2E3A59) : Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(20),
-                        topRight: const Radius.circular(20),
-                        bottomLeft: isUser ? const Radius.circular(20) : const Radius.circular(4),
-                        bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(20),
+                      // Цвет пузырей адаптируется
+                      color: isUser 
+                          ? const Color(0xFF2E3A59) 
+                          : (isDark ? const Color(0xFF2C2C2C) : Colors.white),
+                      borderRadius: BorderRadius.circular(20).copyWith(
+                        bottomRight: isUser ? Radius.zero : null,
+                        bottomLeft: !isUser ? Radius.zero : null,
                       ),
                       boxShadow: [
-                        if (!isUser) const BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))
+                        if (!isDark) const BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))
                       ],
                     ),
                     child: Text(
                       msg['text']!,
                       style: TextStyle(
-                        color: isUser ? Colors.white : Colors.black87,
+                        // Цвет текста на пузырях
+                        color: isUser ? Colors.white : (isDark ? Colors.white : Colors.black87),
                         fontSize: 16,
                       ),
                     ),
@@ -128,26 +146,26 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Colors.black12)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor, // Цвет нижней панели
+              border: Border(top: BorderSide(color: isDark ? Colors.grey[800]! : Colors.black12)),
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end, // 🔥 Кнопка всегда внизу, если поле растет
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    // 🔥 ВОТ ЭТИ ТРИ СТРОЧКИ РЕШАЮТ ПРОБЛЕМУ:
                     minLines: 1,
-                    maxLines: 5, // Расти до 5 строк, потом скроллить
+                    maxLines: 5,
                     keyboardType: TextInputType.multiline,
-                    textCapitalization: TextCapitalization.sentences, // Первая буква заглавная
-                    
+                    textCapitalization: TextCapitalization.sentences,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       hintText: "Спроси о финансах...",
+                      hintStyle: TextStyle(color: isDark ? Colors.grey : null),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
@@ -155,7 +173,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 const SizedBox(width: 10),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 4), // Чуть поднять кнопку, чтобы ровно стояла
+                  padding: const EdgeInsets.only(bottom: 4),
                   child: FloatingActionButton(
                     mini: true,
                     elevation: 0,

@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'models.dart';
 
 class ApiService {
-static String get _baseUrl {
+  static String get _baseUrl {
     if (Platform.isAndroid) {
       return 'http://10.0.2.2:8000';
     } else {
