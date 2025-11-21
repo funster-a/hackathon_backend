@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'localization.dart';
+import 'alert_helper.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
@@ -56,11 +57,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   Future<void> _saveData() async {
     if (_goalController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.get('goals_error_empty')),
-          backgroundColor: Colors.red,
-        ),
+      showErrorAlert(
+        context,
+        message: AppStrings.get('goals_error_empty'),
       );
       return;
     }
@@ -81,22 +80,18 @@ class _GoalsScreenState extends State<GoalsScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppStrings.get('goals_saved')),
-            backgroundColor: Colors.green,
-          ),
+        showSuccessAlert(
+          context,
+          message: AppStrings.get('goals_saved'),
         );
         // Не вызываем Navigator.pop, так как экран находится в IndexedStack
         // и не является отдельным маршрутом
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppStrings.get('goals_error_save')),
-            backgroundColor: Colors.red,
-          ),
+        showErrorAlert(
+          context,
+          message: AppStrings.get('goals_error_save'),
         );
       }
     } finally {

@@ -14,6 +14,7 @@ import 'profile_screen.dart';
 import 'localization.dart';
 import 'usage_manager.dart';
 import 'pin_screen.dart';
+import 'alert_helper.dart';
 
 // Enum для периодов фильтрации
 enum FilterPeriod { week, month, all }
@@ -217,33 +218,21 @@ class _FinanceScreenState extends State<FinanceScreen> {
     if (!canProceed) {
       // Показываем диалог о лимите
       if (!mounted) return;
-      final shouldGoToPremium = await showDialog<bool>(
+      await showLiquidGlassDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(AppStrings.get('limit_exceeded_title')),
-          content: Text(AppStrings.get('limit_exceeded_message')),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(AppStrings.get('cancel')),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E3A59),
-              ),
-              child: Text(AppStrings.get('go_to_premium'), style: const TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
+        title: AppStrings.get('limit_exceeded_title'),
+        message: AppStrings.get('limit_exceeded_message'),
+        confirmText: AppStrings.get('go_to_premium'),
+        cancelText: AppStrings.get('cancel'),
+        onConfirm: () {
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PremiumScreen()),
+            );
+          }
+        },
       );
-      
-      if (shouldGoToPremium == true && mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const PremiumScreen()),
-        );
-      }
       return;
     }
 
