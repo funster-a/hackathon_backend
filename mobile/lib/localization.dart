@@ -301,6 +301,93 @@ class AppStrings {
       Language.kz: 'Соңғы транзакциялар',
       Language.en: 'Recent Transactions',
     },
+    
+    // --- GOALS SCREEN ---
+    'goals_title': {
+      Language.ru: 'Финансовые цели',
+      Language.kz: 'Қаржылық мақсаттар',
+      Language.en: 'Financial Goals',
+    },
+    'goals_subtitle': {
+      Language.ru: 'Укажите вашу финансовую цель и доход, чтобы получать более персонализированные советы',
+      Language.kz: 'Жекеленген кеңестер алу үшін қаржылық мақсатыңызды және табысыңызды көрсетіңіз',
+      Language.en: 'Specify your financial goal and income to receive more personalized advice',
+    },
+    'goals_goal_label': {
+      Language.ru: 'Ваша финансовая цель',
+      Language.kz: 'Сіздің қаржылық мақсатыңыз',
+      Language.en: 'Your Financial Goal',
+    },
+    'goals_goal_hint': {
+      Language.ru: 'Например: Накопить 1 млн на машину',
+      Language.kz: 'Мысалы: Көлікке 1 млн жинау',
+      Language.en: 'For example: Save 1 million for a car',
+    },
+    'goals_income_label': {
+      Language.ru: 'Ваш ежемесячный доход',
+      Language.kz: 'Сіздің айлық табысыңыз',
+      Language.en: 'Your Monthly Income',
+    },
+    'goals_income_hint': {
+      Language.ru: 'Выберите диапазон дохода',
+      Language.kz: 'Табыс диапазонын таңдаңыз',
+      Language.en: 'Select income range',
+    },
+    'goals_save_button': {
+      Language.ru: 'Сохранить',
+      Language.kz: 'Сақтау',
+      Language.en: 'Save',
+    },
+    'goals_saved': {
+      Language.ru: 'Цель успешно сохранена!',
+      Language.kz: 'Мақсат сәтті сақталды!',
+      Language.en: 'Goal saved successfully!',
+    },
+    'goals_error_empty': {
+      Language.ru: 'Пожалуйста, укажите финансовую цель',
+      Language.kz: 'Қаржылық мақсатты көрсетіңіз',
+      Language.en: 'Please specify your financial goal',
+    },
+    'goals_error_save': {
+      Language.ru: 'Ошибка при сохранении',
+      Language.kz: 'Сақтау кезінде қате',
+      Language.en: 'Error saving',
+    },
+    'goals_menu_item': {
+      Language.ru: 'Финансовые цели',
+      Language.kz: 'Қаржылық мақсаттар',
+      Language.en: 'Financial Goals',
+    },
+    'goals_income_option1': {
+      Language.ru: 'До 100 000 ₸',
+      Language.kz: '100 000 ₸ дейін',
+      Language.en: 'Up to 100,000 ₸',
+    },
+    'goals_income_option2': {
+      Language.ru: '100 000 - 200 000 ₸',
+      Language.kz: '100 000 - 200 000 ₸',
+      Language.en: '100,000 - 200,000 ₸',
+    },
+    'goals_income_option3': {
+      Language.ru: '200 000 - 300 000 ₸',
+      Language.kz: '200 000 - 300 000 ₸',
+      Language.en: '200,000 - 300,000 ₸',
+    },
+    'goals_income_option4': {
+      Language.ru: '300 000 - 500 000 ₸',
+      Language.kz: '300 000 - 500 000 ₸',
+      Language.en: '300,000 - 500,000 ₸',
+    },
+    'goals_income_option5': {
+      Language.ru: '500 000 - 1 000 000 ₸',
+      Language.kz: '500 000 - 1 000 000 ₸',
+      Language.en: '500,000 - 1,000,000 ₸',
+    },
+    'goals_income_option6': {
+      Language.ru: 'Свыше 1 000 000 ₸',
+      Language.kz: '1 000 000 ₸ астам',
+      Language.en: 'Over 1,000,000 ₸',
+    },
   };
 
   static String get(String key) {

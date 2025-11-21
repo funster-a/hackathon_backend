@@ -235,7 +235,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     minLines: 1,
                     maxLines: 5,
                     keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
                     textCapitalization: TextCapitalization.sentences,
+                    enableInteractiveSelection: true,
+                    enableSuggestions: true,
+                    autocorrect: true,
                     style: TextStyle(color: isDark ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       hintText: AppStrings.get('chat_hint'),
@@ -245,7 +249,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
-                    onSubmitted: _sendMessage,
+                    // Убираем onSubmitted для многострочного ввода - отправка только по кнопке
                   ),
                 ),
                 const SizedBox(width: 10),

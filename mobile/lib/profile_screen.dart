@@ -4,6 +4,7 @@ import 'welcome_screen.dart';
 import 'premium_screen.dart';
 import 'localization.dart'; // Импорт локализации
 import 'usage_manager.dart';
+import 'goals_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -162,6 +163,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
 
             const Divider(height: 40),
+
+            // Финансовые цели
+            ListTile(
+              leading: const Icon(Icons.flag, color: Color(0xFF2E3A59)),
+              title: Text(AppStrings.get('goals_menu_item'), style: TextStyle(fontWeight: FontWeight.w600, color: textColor)),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const GoalsScreen()),
+                );
+              },
+            ),
+
+            const Divider(height: 20),
 
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),

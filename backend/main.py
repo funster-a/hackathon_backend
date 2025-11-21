@@ -209,6 +209,7 @@ async def analyze_statement(file: UploadFile = File(...), language: str = "ru"):
 class ChatRequest(BaseModel):
     question: str
     context: dict  # Сюда прилетит JSON с тратами (finance_data)
+    user_goal: str = ""  # Финансовая цель пользователя
 
 @app.post("/chat")
 async def chat_with_finance(request: ChatRequest):
@@ -219,12 +220,21 @@ async def chat_with_finance(request: ChatRequest):
     # Превращаем JSON с тратами в строку для промпта
     context_str = json.dumps(request.context, ensure_ascii=False, indent=2)
     
+    # 💡 ИСПОЛЬЗОВАНИЕ ЦЕЛИ: Формируем часть промпта с целью пользователя
+    # Цель сохраняется в mobile/lib/goals_screen.dart -> SharedPreferences
+    # Загружается в mobile/lib/api_service.dart -> sendChatMessage()
+    # Отправляется сюда и используется в системном промпте для персонализации советов
+    goal_prompt = ""
+    if request.user_goal:
+        goal_prompt = f"\nЦель пользователя: {request.user_goal}. Давай советы, опираясь на эту цель."
+    
     system_prompt = f"""
     Ты — финансовый консультант приложения FinHack.
     Твоя цель: помогать пользователю экономить и разбираться в тратах.
     
     ВОТ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ (JSON):
     {context_str}
+    {goal_prompt}
     
     ПРАВИЛА:
     1. Отвечай кратко (макс 3-4 предложения).

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'localization.dart';
 
 class ApiService {
@@ -38,12 +39,20 @@ class ApiService {
   // 👇 НОВЫЙ МЕТОД ДЛЯ ЧАТА 👇
   Future<String> sendChatMessage(String question, Map<String, dynamic> fullJsonContext) async {
     try {
+      // 📖 ИСПОЛЬЗОВАНИЕ: Загружаем сохраненную финансовую цель из SharedPreferences
+      // Ключ: 'user_goal'
+      // Сохранение: goals_screen.dart -> _saveData()
+      // Отправляется на бэкенд: backend/main.py -> ChatRequest.user_goal -> используется в системном промпте
+      final prefs = await SharedPreferences.getInstance();
+      final userGoal = prefs.getString('user_goal') ?? '';
+      
       final response = await _dio.post(
         '$_baseUrl/chat',
         data: {
           "question": question,
           "context": fullJsonContext,
           "language": AppStrings.languageCode, // Передаем текущий язык приложения
+          "user_goal": userGoal, // Добавляем финансовую цель пользователя
         },
       );
       return response.data['reply'];
