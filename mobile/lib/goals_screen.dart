@@ -87,7 +87,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context);
+        // Не вызываем Navigator.pop, так как экран находится в IndexedStack
+        // и не является отдельным маршрутом
       }
     } catch (e) {
       if (mounted) {

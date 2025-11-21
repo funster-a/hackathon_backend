@@ -67,6 +67,11 @@ class AppStrings {
       Language.kz: 'Қаржы туралы сұраңыз...',
       Language.en: 'Ask about finances...',
     },
+    'chat_empty_message': {
+      Language.ru: 'Загрузите выписку, чтобы начать чат',
+      Language.kz: 'Чатты бастау үшін үзіндіні жүктеңіз',
+      Language.en: 'Upload a statement to start chatting',
+    },
     
     // --- ПРОФИЛЬ ---
     'profile_title': {

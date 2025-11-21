@@ -101,7 +101,7 @@ class _MainContainerState extends State<MainContainer> {
               valueListenable: AppStrings.languageNotifier,
               builder: (context, language, child) {
                 return Text(
-                  'Загрузите выписку, чтобы начать чат',
+                  AppStrings.get('chat_empty_message'),
                   style: TextStyle(
                     fontSize: 16,
                     color: isDark ? Colors.white70 : Colors.grey[600],
