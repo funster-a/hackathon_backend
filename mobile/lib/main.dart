@@ -419,7 +419,13 @@ class _FinanceScreenState extends State<FinanceScreen> {
   
   // Вычисление суммы отфильтрованных транзакций (с кэшированием)
   double _getFilteredTotal() {
-    if (_data == null || _data!.transactions.isEmpty) return 0.0;
+    if (_data == null) return 0.0;
+    
+    // Для периода "Все" используем total_spent из исходных данных
+    // Это гарантирует, что сумма совпадает с суммами категорий
+    if (_selectedPeriod == FilterPeriod.all) {
+      return _data!.totalSpent;
+    }
     
     // Проверяем кэш
     if (_cachedFilteredTotals != null && 
@@ -429,6 +435,12 @@ class _FinanceScreenState extends State<FinanceScreen> {
     
     // Инициализируем кэш, если его нет
     _cachedFilteredTotals ??= {};
+    
+    // Для других периодов вычисляем сумму из отфильтрованных транзакций
+    if (_data!.transactions.isEmpty) {
+      _cachedFilteredTotals![_selectedPeriod] = 0.0;
+      return 0.0;
+    }
     
     final filtered = _getFilteredTransactions();
     final total = filtered.fold(0.0, (sum, transaction) => sum + transaction.amount);
