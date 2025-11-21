@@ -17,16 +17,33 @@ class FinanceData {
 
   factory FinanceData.fromJson(Map<String, dynamic> json) {
     return FinanceData(
-      totalSpent: (json['total_spent'] as num).toDouble(),
-      forecast: (json['forecast_next_month'] as num).toDouble(),
-      advice: json['advice'] ?? '',
-      categories: (json['categories'] as List)
-          .map((e) => CategoryItem.fromJson(e))
-          .toList(),
-      subscriptions: (json['subscriptions'] as List)
-          .map((e) => SubscriptionItem.fromJson(e))
-          .toList(),
+      // Safe parsing for numbers: handle int, double, and String
+      totalSpent: _parseDouble(json['total_spent']),
+      forecast: _parseDouble(json['forecast_next_month'] ?? json['forecast']), // AI sometimes messes up keys
+      advice: json['advice']?.toString() ?? 'Совет не сгенерирован',
+      
+      // Safe parsing for lists: check if it is actually a List
+      categories: (json['categories'] is List)
+          ? (json['categories'] as List)
+              .map((e) => CategoryItem.fromJson(e))
+              .toList()
+          : [], // If not a list, return empty to avoid crash
+      
+      subscriptions: (json['subscriptions'] is List)
+          ? (json['subscriptions'] as List)
+              .map((e) => SubscriptionItem.fromJson(e))
+              .toList()
+          : [],
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      return double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+    }
+    return 0.0;
   }
 }
 
@@ -38,11 +55,16 @@ class CategoryItem {
 
   CategoryItem({required this.name, required this.amount, required this.percent, required this.color});
 
-  factory CategoryItem.fromJson(Map<String, dynamic> json) {
+  factory CategoryItem.fromJson(dynamic json) {
+    // If json is not a Map (AI sometimes sends strings), return a dummy
+    if (json is! Map<String, dynamic>) {
+      return CategoryItem(name: "Ошибка", amount: 0, percent: 0, color: const Color(0xFFCCCCCC));
+    }
+
     return CategoryItem(
-      name: json['name'],
-      amount: (json['amount'] as num).toDouble(),
-      percent: (json['percent'] as num).toDouble(),
+      name: json['name']?.toString() ?? 'Без названия',
+      amount: FinanceData._parseDouble(json['amount']),
+      percent: FinanceData._parseDouble(json['percent']),
       color: _parseColor(json['color']),
     );
   }
@@ -67,10 +89,13 @@ class SubscriptionItem {
 
   SubscriptionItem({required this.name, required this.cost});
 
-  factory SubscriptionItem.fromJson(Map<String, dynamic> json) {
+  factory SubscriptionItem.fromJson(dynamic json) {
+    if (json is! Map<String, dynamic>) {
+      return SubscriptionItem(name: "Unknown", cost: 0);
+    }
     return SubscriptionItem(
-      name: json['name'],
-      cost: (json['cost'] as num).toDouble(),
+      name: json['name']?.toString() ?? 'Сервис',
+      cost: FinanceData._parseDouble(json['cost']),
     );
   }
 }
