@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'localization.dart';
 import 'usage_manager.dart';
+import 'alert_helper.dart';
 
 class PremiumScreen extends StatelessWidget {
   const PremiumScreen({super.key});
@@ -120,11 +121,9 @@ class PremiumScreen extends StatelessWidget {
                                   
                                   // Показываем уведомление
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(AppStrings.get('premium_activated')),
-                                        backgroundColor: Colors.green,
-                                      )
+                                    showSuccessAlert(
+                                      context,
+                                      message: AppStrings.get('premium_activated'),
                                     );
                                     Navigator.pop(context);
                                   }

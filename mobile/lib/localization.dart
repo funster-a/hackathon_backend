@@ -67,6 +67,11 @@ class AppStrings {
       Language.kz: 'Қаржы туралы сұраңыз...',
       Language.en: 'Ask about finances...',
     },
+    'chat_empty_message': {
+      Language.ru: 'Загрузите выписку, чтобы начать чат',
+      Language.kz: 'Чатты бастау үшін үзіндіні жүктеңіз',
+      Language.en: 'Upload a statement to start chatting',
+    },
     
     // --- ПРОФИЛЬ ---
     'profile_title': {
@@ -117,9 +122,9 @@ class AppStrings {
     
     // --- WELCOME SCREEN ---
     'welcome_title': {
-      Language.ru: 'FinHack AI',
-      Language.kz: 'FinHack AI',
-      Language.en: 'FinHack AI',
+      Language.ru: 'FinSight',
+      Language.kz: 'FinSight',
+      Language.en: 'FinSight',
     },
     'welcome_subtitle': {
       Language.ru: 'Твой умный финансовый ассистент',
@@ -149,9 +154,9 @@ class AppStrings {
     
     // --- PREMIUM SCREEN ---
     'premium_title': {
-      Language.ru: 'FinHack PRO',
-      Language.kz: 'FinHack PRO',
-      Language.en: 'FinHack PRO',
+      Language.ru: 'FinSight PRO',
+      Language.kz: 'FinSight PRO',
+      Language.en: 'FinSight PRO',
     },
     'premium_subtitle': {
       Language.ru: 'Разблокируй полную мощь AI',
@@ -248,9 +253,14 @@ class AppStrings {
       Language.en: 'AI Chat',
     },
     'app_title': {
-      Language.ru: 'FinHack',
-      Language.kz: 'FinHack',
-      Language.en: 'FinHack',
+      Language.ru: 'FinSight',
+      Language.kz: 'FinSight',
+      Language.en: 'FinSight',
+    },
+    'dashboard_title': {
+      Language.ru: 'Дашборд',
+      Language.kz: 'Бақылау тақтасы',
+      Language.en: 'Dashboard',
     },
     
     // --- LIMIT DIALOGS ---
@@ -304,7 +314,7 @@ class AppStrings {
     
     // --- GOALS SCREEN ---
     'goals_title': {
-      Language.ru: 'Финансовые цели',
+      Language.ru: 'Цели',
       Language.kz: 'Қаржылық мақсаттар',
       Language.en: 'Financial Goals',
     },
@@ -357,6 +367,11 @@ class AppStrings {
       Language.ru: 'Финансовые цели',
       Language.kz: 'Қаржылық мақсаттар',
       Language.en: 'Financial Goals',
+    },
+    'goals_saved_list_title': {
+      Language.ru: 'Сохраненные цели',
+      Language.kz: 'Сақталған мақсаттар',
+      Language.en: 'Saved Goals',
     },
     'goals_income_option1': {
       Language.ru: 'До 100 000 ₸',
