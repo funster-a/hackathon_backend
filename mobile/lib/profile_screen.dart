@@ -6,6 +6,7 @@ import 'localization.dart'; // Импорт локализации
 import 'usage_manager.dart';
 import 'goals_screen.dart';
 import 'pin_screen.dart';
+import 'alert_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback onLogout;
@@ -205,11 +206,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       );
                       if (result == true && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(AppStrings.get('pin_menu_change')),
-                            backgroundColor: Colors.green,
-                          ),
+                        showSuccessAlert(
+                          context,
+                          message: AppStrings.get('pin_menu_change'),
                         );
                       }
                     } else {
@@ -222,11 +221,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
                       if (result == true && mounted) {
                         setState(() {}); // Обновляем состояние для обновления текста кнопки
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(AppStrings.get('pin_menu_setup')),
-                            backgroundColor: Colors.green,
-                          ),
+                        showSuccessAlert(
+                          context,
+                          message: AppStrings.get('pin_menu_setup'),
                         );
                       }
                     }

@@ -101,7 +101,7 @@ class _MainContainerState extends State<MainContainer> {
               valueListenable: AppStrings.languageNotifier,
               builder: (context, language, child) {
                 return Text(
-                  'Загрузите выписку, чтобы начать чат',
+                  AppStrings.get('chat_empty_message'),
                   style: TextStyle(
                     fontSize: 16,
                     color: isDark ? Colors.white70 : Colors.grey[600],
@@ -153,7 +153,7 @@ class _MainContainerState extends State<MainContainer> {
                   children: [
                     _buildNavItem(
                       icon: CupertinoIcons.chart_bar_alt_fill,
-                      label: 'Dashboard',
+                      label: AppStrings.get('dashboard_title'),
                       index: 0,
                       isDark: isDark,
                     ),

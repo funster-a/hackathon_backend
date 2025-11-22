@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:ui';
 import 'localization.dart';
 
 enum PinMode { setup, verify, change }
@@ -41,9 +42,7 @@ class _PinScreenState extends State<PinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F7);
-    final textColor = isDark ? Colors.white : Colors.black87;
+    final bgColor = const Color(0xFF2E3A59); // Темно-синий фон как в welcome screen
 
     return ValueListenableBuilder<Language>(
       valueListenable: AppStrings.languageNotifier,
@@ -56,17 +55,27 @@ class _PinScreenState extends State<PinScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Иконка
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2E3A59).withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.lock_outline,
-                      size: 64,
-                      color: Color(0xFF2E3A59),
+                  // Иконка в стиле Liquid Glass
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(60),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.lock_outline,
+                          size: 64,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -77,7 +86,7 @@ class _PinScreenState extends State<PinScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: textColor,
+                      color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -88,33 +97,50 @@ class _PinScreenState extends State<PinScreen> {
                     _getSubtitle(),
                     style: GoogleFonts.inter(
                       fontSize: 16,
-                      color: isDark ? Colors.white70 : Colors.grey[600],
+                      color: Colors.white70,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
 
-                  // Индикаторы PIN-кода
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _pinLength,
-                      (index) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: index < _getCurrentPin().length
-                                  ? const Color(0xFF2E3A59)
-                                  : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                              width: 2,
+                  // Индикаторы PIN-кода в стиле Liquid Glass
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            _pinLength,
+                            (index) => Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              child: Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: index < _getCurrentPin().length
+                                        ? Colors.amber
+                                        : Colors.white.withOpacity(0.3),
+                                    width: 2,
+                                  ),
+                                  color: index < _getCurrentPin().length
+                                      ? Colors.amber
+                                      : Colors.transparent,
+                                ),
+                              ),
                             ),
-                            color: index < _getCurrentPin().length
-                                ? const Color(0xFF2E3A59)
-                                : Colors.transparent,
                           ),
                         ),
                       ),
@@ -124,20 +150,37 @@ class _PinScreenState extends State<PinScreen> {
                   // Сообщение об ошибке
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 20),
-                    Text(
-                      _errorMessage!,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 14,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.red.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ],
 
                   const Spacer(),
 
                   // Цифровая клавиатура
-                  _buildNumpad(isDark, textColor),
+                  _buildNumpad(),
 
                   const SizedBox(height: 20),
                 ],
@@ -189,7 +232,7 @@ class _PinScreenState extends State<PinScreen> {
     }
   }
 
-  Widget _buildNumpad(bool isDark, Color textColor) {
+  Widget _buildNumpad() {
     return Column(
       children: [
         // Строки с цифрами
@@ -202,8 +245,6 @@ class _PinScreenState extends State<PinScreen> {
                 for (int col = 1; col <= 3; col++)
                   _buildNumberButton(
                     (row * 3 + col).toString(),
-                    isDark,
-                    textColor,
                   ),
               ],
             ),
@@ -217,8 +258,8 @@ class _PinScreenState extends State<PinScreen> {
             children: [
               // Отступ слева для центрирования (ширина одной кнопки с отступами: 80 + 12*2 = 104)
               const SizedBox(width: 104),
-              _buildNumberButton('0', isDark, textColor),
-              _buildDeleteButton(isDark, textColor),
+              _buildNumberButton('0'),
+              _buildDeleteButton(),
             ],
           ),
         ),
@@ -226,32 +267,45 @@ class _PinScreenState extends State<PinScreen> {
     );
   }
 
-  Widget _buildNumberButton(String number, bool isDark, Color textColor) {
+  Widget _buildNumberButton(String number) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _onNumberPressed(number),
-          borderRadius: BorderRadius.circular(50),
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-              border: Border.all(
-                color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-                width: 1,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                number,
-                style: GoogleFonts.inter(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _onNumberPressed(number),
+              borderRadius: BorderRadius.circular(50),
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.1),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    number,
+                    style: GoogleFonts.inter(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -261,29 +315,42 @@ class _PinScreenState extends State<PinScreen> {
     );
   }
 
-  Widget _buildDeleteButton(bool isDark, Color textColor) {
+  Widget _buildDeleteButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _onDeletePressed,
-          borderRadius: BorderRadius.circular(50),
-          child: Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-              border: Border.all(
-                color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-                width: 1,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _onDeletePressed,
+              borderRadius: BorderRadius.circular(50),
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.1),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.backspace_outlined,
+                  size: 28,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            child: Icon(
-              Icons.backspace_outlined,
-              size: 28,
-              color: textColor,
             ),
           ),
         ),
