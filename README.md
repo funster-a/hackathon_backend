@@ -2,7 +2,7 @@
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.24-02569B?logo=flutter) ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi) ![AI](https://img.shields.io/badge/AI-DeepSeek_V3-blueviolet)
 
-**Репозиторий решения для хакатона [Название Хакатона]**
+**Репозиторий решения для хакатона AI HACKATHON METU 2025**
 
 ### 1. Задача
 Разработать мобильное приложение "Финансовый ассистент", которое автоматизирует анализ личных финансов.
