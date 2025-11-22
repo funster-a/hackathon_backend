@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'main_container.dart';
+import 'registration_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -72,14 +72,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       await prefs.setString('user_goal_onboarding', _selectedGoal!);
     }
     
-    // Сохраняем флаг первого запуска
-    await prefs.setBool('is_first_run', false);
-    
-    // Переходим на главный экран
+    // Переходим на экран регистрации
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const MainContainer()),
+        MaterialPageRoute(builder: (_) => const RegistrationScreen()),
       );
     }
   }

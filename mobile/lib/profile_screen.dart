@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'welcome_screen.dart';
 import 'premium_screen.dart';
 import 'localization.dart'; // Импорт локализации
@@ -19,14 +20,26 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final UsageManager _usageManager = UsageManager();
+  String? _userName;
 
   @override
   void initState() {
     super.initState();
+    _loadUserName();
     // Обновляем состояние при возврате на экран
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() {});
     });
+  }
+
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString('user_name');
+    if (mounted) {
+      setState(() {
+        _userName = name;
+      });
+    }
   }
 
   @override
@@ -56,12 +69,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              "Амир Аханов",
+              _userName ?? AppStrings.get('profile_guest'),
               style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
-            ),
-            Text(
-              "amir.akhanov@gmail.com",
-              style: GoogleFonts.inter(fontSize: 14, color: subTextColor),
             ),
             const SizedBox(height: 30),
 

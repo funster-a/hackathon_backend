@@ -8,12 +8,12 @@ class ApiService {
     if (Platform.isAndroid) {
       return 'http://10.0.2.2:8000';
     } else {
-      return 'http://127.0.0.1:8000';
+      return 'http://172.16.3.124:8000';
     }
   }  
   final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 30),
-    receiveTimeout: const Duration(seconds: 120), // Увеличиваем таймаут для больших выписок
+    connectTimeout: const Duration(seconds: 60),
+    receiveTimeout: const Duration(seconds: 300), // Увеличиваем таймаут до 5 минут для DeepSeek API
   ));
 
   // Загрузка файла (уже было)

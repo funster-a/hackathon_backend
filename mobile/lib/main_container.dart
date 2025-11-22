@@ -7,6 +7,7 @@ import 'main.dart';
 import 'chat_screen.dart';
 import 'goals_screen.dart';
 import 'profile_screen.dart';
+import 'pin_screen.dart';
 import 'models.dart';
 import 'localization.dart';
 
@@ -19,6 +20,8 @@ class MainContainer extends StatefulWidget {
 
 class _MainContainerState extends State<MainContainer> {
   int _currentIndex = 0;
+  bool _isCheckingPin = true;
+  bool _pinSet = false;
   
   // Состояние для ChatScreen (нужно для передачи данных из FinanceScreen)
   FinanceData? _chatFinanceData;
@@ -28,7 +31,24 @@ class _MainContainerState extends State<MainContainer> {
   @override
   void initState() {
     super.initState();
-    _loadSavedFinanceData();
+    _checkPinAndLoadData();
+  }
+
+  Future<void> _checkPinAndLoadData() async {
+    // Проверяем, установлен ли PIN-код
+    final pinSet = await PinScreen.isPinSet();
+    
+    if (mounted) {
+      setState(() {
+        _pinSet = pinSet;
+        _isCheckingPin = false;
+      });
+      
+      // Загружаем данные только если PIN проверен или не установлен
+      if (!pinSet) {
+        _loadSavedFinanceData();
+      }
+    }
   }
 
   // Загружаем сохраненные данные при инициализации
@@ -49,7 +69,7 @@ class _MainContainerState extends State<MainContainer> {
             if (_chatHistory.isEmpty) {
               _chatHistory.add({
                 "role": "ai", 
-                "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
+                "text": AppStrings.get('chat_welcome_message')
               });
             }
           });
@@ -74,7 +94,7 @@ class _MainContainerState extends State<MainContainer> {
       _chatHistory.clear();
       _chatHistory.add({
         "role": "ai", 
-        "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
+        "text": AppStrings.get('chat_welcome_message')
       });
       _currentIndex = 1; // Переключаемся на вкладку чата
     });
@@ -83,6 +103,32 @@ class _MainContainerState extends State<MainContainer> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Если проверяем PIN, показываем загрузку
+    if (_isCheckingPin) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF2E3A59),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+    
+    // Если PIN установлен, показываем экран ввода PIN
+    if (_pinSet) {
+      return PinScreen(
+        mode: PinMode.verify,
+        onSuccess: () {
+          // После успешной проверки PIN загружаем данные и показываем контейнер
+          setState(() {
+            _pinSet = false;
+          });
+          _loadSavedFinanceData();
+        },
+      );
+    }
     
     return Scaffold(
       extendBody: true, // Позволяет контенту проходить под панелью навигации

@@ -79,6 +79,11 @@ class AppStrings {
       Language.kz: 'Профиль',
       Language.en: 'Profile',
     },
+    'profile_guest': {
+      Language.ru: 'Гость',
+      Language.kz: 'Қонақ',
+      Language.en: 'Guest',
+    },
     'settings_lang': {
       Language.ru: 'Язык приложения',
       Language.kz: 'Қолданба тілі',
@@ -152,6 +157,33 @@ class AppStrings {
       Language.en: 'Start Analysis',
     },
     
+    // --- REGISTRATION SCREEN ---
+    'registration_title': {
+      Language.ru: 'Как тебя зовут?',
+      Language.kz: 'Сенің атың кім?',
+      Language.en: 'What\'s your name?',
+    },
+    'registration_subtitle': {
+      Language.ru: 'Расскажи нам немного о себе',
+      Language.kz: 'Өзің туралы біраз айтып бер',
+      Language.en: 'Tell us a bit about yourself',
+    },
+    'registration_name_hint': {
+      Language.ru: 'Введите ваше имя',
+      Language.kz: 'Атыңызды енгізіңіз',
+      Language.en: 'Enter your name',
+    },
+    'registration_button': {
+      Language.ru: 'Начать',
+      Language.kz: 'Бастау',
+      Language.en: 'Start',
+    },
+    'registration_name_required': {
+      Language.ru: 'Пожалуйста, введите ваше имя',
+      Language.kz: 'Атыңызды енгізіңіз',
+      Language.en: 'Please enter your name',
+    },
+    
     // --- PREMIUM SCREEN ---
     'premium_title': {
       Language.ru: 'FinSight PRO',
@@ -205,6 +237,11 @@ class AppStrings {
     },
     
     // --- CHAT SCREEN ---
+    'chat_welcome_message': {
+      Language.ru: 'Привет! Я твой финансовый ассистент FinSight. Я могу помочь тебе с анализом расходов, планированием бюджета и финансовыми советами. Загрузи выписку, чтобы я мог дать более точные рекомендации!',
+      Language.kz: 'Сәлем! Мен сенің қаржы көмекшің FinSight. Мен шығындарды талдауға, бюджетті жоспарлауға және қаржылық кеңестерге көмектесе аламын. Дәлірек ұсыныстар беру үшін үзіндіні жүкте!',
+      Language.en: 'Hello! I\'m your financial assistant FinSight. I can help you with expense analysis, budget planning, and financial advice. Upload a statement so I can give you more accurate recommendations!',
+    },
     'chat_typing': {
       Language.ru: 'AI печатает...',
       Language.kz: 'AI теріп жатыр...',
