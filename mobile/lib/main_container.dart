@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:ui';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'main.dart';
 import 'chat_screen.dart';
 import 'goals_screen.dart';
@@ -22,6 +24,41 @@ class _MainContainerState extends State<MainContainer> {
   FinanceData? _chatFinanceData;
   Map<String, dynamic>? _chatRawContext;
   final List<Map<String, String>> _chatHistory = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedFinanceData();
+  }
+
+  // Загружаем сохраненные данные при инициализации
+  Future<void> _loadSavedFinanceData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedJson = prefs.getString('finance_data_json');
+      
+      if (savedJson != null) {
+        final jsonData = json.decode(savedJson) as Map<String, dynamic>;
+        final financeData = FinanceData.fromJson(jsonData);
+        
+        if (mounted) {
+          setState(() {
+            _chatFinanceData = financeData;
+            _chatRawContext = jsonData;
+            // Добавляем приветственное сообщение, если истории нет
+            if (_chatHistory.isEmpty) {
+              _chatHistory.add({
+                "role": "ai", 
+                "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
+              });
+            }
+          });
+        }
+      }
+    } catch (e) {
+      print("Ошибка загрузки сохраненных данных: $e");
+    }
+  }
 
   void _onTabTapped(int index) {
     setState(() {

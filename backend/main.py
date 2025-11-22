@@ -10,42 +10,42 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-# --- API КЛЮЧ (Groq) ---
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-if not GROQ_API_KEY:
+# --- API КЛЮЧ (DeepSeek) ---
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+if not DEEPSEEK_API_KEY:
     try:
-        from local_secrets import GROQ_API_KEY as LOCAL_KEY
+        from local_secrets import DEEPSEEK_API_KEY as LOCAL_KEY
     except ImportError as exc:
         raise RuntimeError(
-            "GROQ_API_KEY is not set. "
-            "Export it or create local_secrets.py with GROQ_API_KEY='...'."
+            "DEEPSEEK_API_KEY is not set. "
+            "Export it or create local_secrets.py with DEEPSEEK_API_KEY='...'."
         ) from exc
     else:
-        GROQ_API_KEY = LOCAL_KEY
+        DEEPSEEK_API_KEY = LOCAL_KEY
 
-BASE_URL = "https://api.groq.com/openai/v1"
+BASE_URL = "https://api.deepseek.com/v1"
 
-client = OpenAI(api_key=GROQ_API_KEY, base_url=BASE_URL)
+client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url=BASE_URL)
 
 # Функция для проверки API ключа
 def check_api_key():
     """Проверяет валидность API ключа, делая тестовый запрос"""
     try:
         test_response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",  # Актуальная модель Groq
+            model="deepseek-chat",  # Модель DeepSeek
             messages=[{"role": "user", "content": "test"}],
             max_tokens=5
         )
-        print("✅ Groq API ключ валиден")
+        print("✅ DeepSeek API ключ валиден")
         return True
     except Exception as e:
         error_msg = str(e).lower()
         if "rate limit" in error_msg or "quota" in error_msg:
             print("⚠️ ВНИМАНИЕ: Закончились лимиты API!")
-            print("Проверьте баланс на https://console.groq.com/")
+            print("Проверьте баланс на https://platform.deepseek.com/")
         elif "unauthorized" in error_msg or "401" in error_msg or "403" in error_msg:
             print("❌ ОШИБКА: Неверный API ключ!")
-            print("Проверьте GROQ_API_KEY в переменных окружения или local_secrets.py")
+            print("Проверьте DEEPSEEK_API_KEY в переменных окружения или local_secrets.py")
         else:
             print(f"⚠️ Не удалось проверить API ключ: {e}")
         return False
@@ -219,7 +219,7 @@ def analyze_kaspi_statement(text, language="ru"):
     try:
         try:
             response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",  # Актуальная модель Groq
+                model="deepseek-chat",  # Модель DeepSeek
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": f"Текст выписки:\n{text[:5000]}"}
@@ -234,13 +234,13 @@ def analyze_kaspi_statement(text, language="ru"):
             # Проверяем на ошибки лимитов
             if "rate limit" in error_msg.lower() or "quota" in error_msg.lower() or "limit" in error_msg.lower():
                 print("⚠️ ВНИМАНИЕ: Похоже, закончились лимиты API!")
-                print("Проверьте баланс и лимиты на https://console.groq.com/")
+                print("Проверьте баланс и лимиты на https://platform.deepseek.com/")
                 return None
             
             # Проверяем на ошибки авторизации
             if "unauthorized" in error_msg.lower() or "401" in error_msg or "403" in error_msg:
                 print("⚠️ ОШИБКА: Проблема с API ключом!")
-                print("Проверьте GROQ_API_KEY в переменных окружения или local_secrets.py")
+                print("Проверьте DEEPSEEK_API_KEY в переменных окружения или local_secrets.py")
                 return None
             
             # Другие ошибки API
@@ -490,7 +490,7 @@ async def chat_with_finance(request: ChatRequest):
         goal_prompt = f"\nЦель пользователя: {request.user_goal}. Давай советы, опираясь на эту цель."
     
     system_prompt = f"""
-    Ты — финансовый консультант приложения FinHack.
+    Ты — финансовый консультант приложения FinSight.
     Твоя цель: помогать пользователю экономить и разбираться в тратах.
     
     ВОТ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ (JSON):
@@ -507,7 +507,7 @@ async def chat_with_finance(request: ChatRequest):
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",  # Актуальная модель Groq
+            model="deepseek-chat",  # Модель DeepSeek
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": request.question}

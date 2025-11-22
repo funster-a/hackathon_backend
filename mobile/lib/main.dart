@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'models.dart';
 import 'welcome_screen.dart';
@@ -262,6 +264,15 @@ class _FinanceScreenState extends State<FinanceScreen> {
             
             // Увеличиваем счетчик использований только при успешной загрузке
             await usageManager.incrementUsage();
+            
+            // Сохраняем данные в SharedPreferences для ChatScreen
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('finance_data_json', jsonEncode(jsonResponse));
+            
+            // Вызываем callback для обновления данных в MainContainer
+            if (widget.onChatRequested != null) {
+              widget.onChatRequested!(financeData, jsonResponse);
+            }
             
             if (!mounted) return;
             setState(() {
