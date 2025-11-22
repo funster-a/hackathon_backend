@@ -363,6 +363,11 @@ class AppStrings {
       Language.kz: 'Қаржылық мақсаттар',
       Language.en: 'Financial Goals',
     },
+    'goals_saved_list_title': {
+      Language.ru: 'Сохраненные цели',
+      Language.kz: 'Сақталған мақсаттар',
+      Language.en: 'Saved Goals',
+    },
     'goals_income_option1': {
       Language.ru: 'До 100 000 ₸',
       Language.kz: '100 000 ₸ дейін',

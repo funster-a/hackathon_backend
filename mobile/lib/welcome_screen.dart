@@ -1,13 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'onboarding_screen.dart';
 import 'main_container.dart';
 import 'localization.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  bool _isChecking = true;
+  bool _isFirstRun = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstRun();
+  }
+
+  Future<void> _checkFirstRun() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstRun = prefs.getBool('is_first_run') ?? true;
+    if (mounted) {
+      setState(() {
+        _isFirstRun = isFirstRun;
+        _isChecking = false;
+      });
+    }
+  }
+
+  void _handleStart() {
+    if (_isFirstRun) {
+      // Первый запуск - показываем onboarding
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+      );
+    } else {
+      // Onboarding уже пройден - сразу в приложение
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MainContainer()),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isChecking) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF2E3A59),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+
     return ValueListenableBuilder<Language>(
       valueListenable: AppStrings.languageNotifier,
       builder: (context, language, child) {
@@ -72,13 +126,7 @@ class WelcomeScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 60,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Переход на главный контейнер с навигацией (без возможности вернуться назад)
-                        Navigator.pushReplacement(
-                          context, 
-                          MaterialPageRoute(builder: (_) => const MainContainer())
-                        );
-                      },
+                      onPressed: _handleStart,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF2E3A59),
