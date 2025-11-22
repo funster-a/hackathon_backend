@@ -159,7 +159,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             content: const Text('Пожалуйста, выберите вариант'),
                             backgroundColor: Colors.red.withOpacity(0.9),
                             behavior: SnackBarBehavior.floating,
-                            margin: const EdgeInsets.all(16),
+                            margin: EdgeInsets.only(
+                              top: MediaQuery.of(context).padding.top + 16,
+                              left: 16,
+                              right: 16,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -173,7 +177,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             content: const Text('Пожалуйста, выберите цель'),
                             backgroundColor: Colors.red.withOpacity(0.9),
                             behavior: SnackBarBehavior.floating,
-                            margin: const EdgeInsets.all(16),
+                            margin: EdgeInsets.only(
+                              top: MediaQuery.of(context).padding.top + 16,
+                              left: 16,
+                              right: 16,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

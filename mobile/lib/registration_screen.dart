@@ -26,6 +26,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             style: GoogleFonts.inter(),
           ),
           backgroundColor: Colors.red,
+          margin: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+          ),
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -43,22 +49,29 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       // Проверяем, установлен ли уже PIN-код
       final pinSet = await PinScreen.isPinSet();
       
+      if (!mounted) return; // Проверяем mounted после асинхронной операции
+      
+      // Сохраняем context для использования в callback
+      final navigatorContext = context;
+      
       if (pinSet) {
         // Если PIN уже установлен, переходим в главное приложение
         Navigator.pushReplacement(
-          context,
+          navigatorContext,
           MaterialPageRoute(builder: (_) => const MainContainer()),
         );
       } else {
         // Если PIN не установлен, показываем экран установки PIN-кода
         Navigator.pushReplacement(
-          context,
+          navigatorContext,
           MaterialPageRoute(
             builder: (_) => PinScreen(
               mode: PinMode.setup,
               onSuccess: () {
                 // После установки PIN переходим в главное приложение
-                Navigator.of(context).pushReplacement(
+                // Используем rootNavigator для безопасной навигации
+                final rootNavigator = Navigator.of(navigatorContext, rootNavigator: true);
+                rootNavigator.pushReplacement(
                   MaterialPageRoute(builder: (_) => const MainContainer()),
                 );
               },
@@ -76,6 +89,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             style: GoogleFonts.inter(),
           ),
           backgroundColor: Colors.red,
+          margin: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+          ),
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
