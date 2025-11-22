@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:ui';
 import 'onboarding_screen.dart';
 import 'main_container.dart';
 import 'localization.dart';
@@ -77,16 +78,26 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Column(
                     children: [
                       const SizedBox(height: 40),
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.auto_awesome, 
-                          size: 80, 
-                          color: Colors.amberAccent
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(60),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.auto_awesome, 
+                              size: 80, 
+                              color: Colors.amberAccent
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -121,25 +132,45 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ],
                   ),
 
-                  // Кнопка
-                  SizedBox(
-                    width: double.infinity,
-                    height: 60,
-                    child: ElevatedButton(
-                      onPressed: _handleStart,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF2E3A59),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)
+                  // Кнопка в стиле Liquid Glass
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        width: double.infinity,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
-                        elevation: 5,
-                      ),
-                      child: Text(
-                        AppStrings.get('welcome_button'),
-                        style: GoogleFonts.inter(
-                          fontSize: 18, 
-                          fontWeight: FontWeight.bold
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _handleStart,
+                            borderRadius: BorderRadius.circular(20),
+                            child: Center(
+                              child: Text(
+                                AppStrings.get('welcome_button'),
+                                style: GoogleFonts.inter(
+                                  fontSize: 18, 
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -154,28 +185,45 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Widget _buildFeatureItem(IconData icon, String text) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: Colors.white, size: 24),
-        ),
-        const SizedBox(width: 20),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.inter(
-              fontSize: 16, 
-              color: Colors.white, 
-              fontWeight: FontWeight.w500
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1,
             ),
           ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  text,
+                  style: GoogleFonts.inter(
+                    fontSize: 16, 
+                    color: Colors.white, 
+                    fontWeight: FontWeight.w500
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }

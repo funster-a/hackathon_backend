@@ -153,7 +153,7 @@ class _MainContainerState extends State<MainContainer> {
                   children: [
                     _buildNavItem(
                       icon: CupertinoIcons.chart_bar_alt_fill,
-                      label: 'Dashboard',
+                      label: AppStrings.get('dashboard_title'),
                       index: 0,
                       isDark: isDark,
                     ),

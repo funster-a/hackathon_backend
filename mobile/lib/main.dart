@@ -77,7 +77,7 @@ class _MyAppState extends State<MyApp> {
       builder: (context, language, child) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-          title: 'FinHack',
+          title: 'FinSight',
           
           // ☀️ СВЕТЛАЯ ТЕМА (Стандартная)
       theme: ThemeData(
@@ -307,7 +307,15 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: ValueListenableBuilder<Language>(
+          valueListenable: AppStrings.languageNotifier,
+          builder: (context, language, child) {
+            return Text(
+              AppStrings.get('dashboard_title'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            );
+          },
+        ),
         centerTitle: true,
         automaticallyImplyLeading: false, // Убираем кнопку назад для работы в табах
         leading: isInContainer
