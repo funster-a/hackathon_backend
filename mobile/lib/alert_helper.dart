@@ -80,7 +80,11 @@ Future<void> showSuccessAlert(
       ),
       backgroundColor: Colors.transparent,
       elevation: 0,
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 16,
+        left: 16,
+        right: 16,
+      ),
       behavior: SnackBarBehavior.floating,
       duration: duration,
       shape: RoundedRectangleBorder(
@@ -168,7 +172,11 @@ Future<void> showErrorAlert(
       ),
       backgroundColor: Colors.transparent,
       elevation: 0,
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 16,
+        left: 16,
+        right: 16,
+      ),
       behavior: SnackBarBehavior.floating,
       duration: duration,
       shape: RoundedRectangleBorder(

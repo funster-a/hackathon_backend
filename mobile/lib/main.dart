@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'models.dart';
 import 'welcome_screen.dart';
@@ -13,7 +15,6 @@ import 'theme_helper.dart';
 import 'profile_screen.dart';
 import 'localization.dart';
 import 'usage_manager.dart';
-import 'pin_screen.dart';
 import 'alert_helper.dart';
 
 // Enum для периодов фильтрации
@@ -120,69 +121,13 @@ class _MyAppState extends State<MyApp> {
           // ⚙️ Ручное переключение темы
           themeMode: _themeMode, 
           
-          home: const PinCheckScreen(),
+          home: const WelcomeScreen(),
         );
       },
     );
   }
 }
 
-// Экран проверки PIN-кода при запуске
-class PinCheckScreen extends StatefulWidget {
-  const PinCheckScreen({super.key});
-
-  @override
-  State<PinCheckScreen> createState() => _PinCheckScreenState();
-}
-
-class _PinCheckScreenState extends State<PinCheckScreen> {
-  bool _isChecking = true;
-  bool _pinSet = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkPin();
-  }
-
-  Future<void> _checkPin() async {
-    final pinSet = await PinScreen.isPinSet();
-    if (mounted) {
-      setState(() {
-        _pinSet = pinSet;
-        _isChecking = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_isChecking) {
-      // Показываем загрузку во время проверки
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    // Если PIN установлен, показываем экран ввода PIN
-    if (_pinSet) {
-      return PinScreen(
-        mode: PinMode.verify,
-        onSuccess: () {
-          // После успешной проверки PIN переходим на WelcomeScreen
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-          );
-        },
-      );
-    }
-
-    // Если PIN не установлен, показываем WelcomeScreen
-    return const WelcomeScreen();
-  }
-}
 
 class FinanceScreen extends StatefulWidget {
   final Function(FinanceData, Map<String, dynamic>)? onChatRequested;
@@ -263,6 +208,15 @@ class _FinanceScreenState extends State<FinanceScreen> {
             // Увеличиваем счетчик использований только при успешной загрузке
             await usageManager.incrementUsage();
             
+            // Сохраняем данные в SharedPreferences для ChatScreen
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('finance_data_json', jsonEncode(jsonResponse));
+            
+            // Вызываем callback для обновления данных в MainContainer
+            if (widget.onChatRequested != null) {
+              widget.onChatRequested!(financeData, jsonResponse);
+            }
+            
             if (!mounted) return;
             setState(() {
               _rawJson = jsonResponse;
@@ -270,7 +224,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
               _chatHistory.clear();
               _chatHistory.add({
                 "role": "ai", 
-                "text": "Привет! Я изучил твою выписку. Спроси меня: 'Сколько я потратил на такси?' или 'Как мне сэкономить?'"
+                "text": AppStrings.get('chat_welcome_message')
               });
               // Очищаем кэш при загрузке новых данных
               _clearCache();

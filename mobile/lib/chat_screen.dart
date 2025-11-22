@@ -191,7 +191,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
 
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: EdgeInsets.fromLTRB(16, 20, 16, 20 + MediaQuery.of(context).padding.bottom), // Отступ для навбара
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               border: Border(top: BorderSide(color: isDark ? Colors.grey[800]! : Colors.black12)),
