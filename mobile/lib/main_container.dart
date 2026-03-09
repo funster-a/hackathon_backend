@@ -35,17 +35,23 @@ class _MainContainerState extends State<MainContainer> {
   }
 
   Future<void> _checkPinAndLoadData() async {
-    // Проверяем, установлен ли PIN-код
+    final prefs = await SharedPreferences.getInstance();
+    final skipVerify = prefs.getBool('skip_pin_verify_once') ?? false;
+    
+    if (skipVerify) {
+      await prefs.remove('skip_pin_verify_once');
+    }
+    
     final pinSet = await PinScreen.isPinSet();
+    final shouldSkipVerify = skipVerify && pinSet;
     
     if (mounted) {
       setState(() {
-        _pinSet = pinSet;
+        _pinSet = shouldSkipVerify ? false : pinSet;
         _isCheckingPin = false;
       });
       
-      // Загружаем данные только если PIN проверен или не установлен
-      if (!pinSet) {
+      if (!pinSet || shouldSkipVerify) {
         _loadSavedFinanceData();
       }
     }

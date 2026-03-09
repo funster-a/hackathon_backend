@@ -507,6 +507,80 @@ class AppStrings {
       Language.kz: 'PIN-кодты жою',
       Language.en: 'Remove PIN Code',
     },
+
+    // --- АВАТАР ---
+    'avatar_menu_item': {
+      Language.ru: 'Сменить аватар',
+      Language.kz: 'Аватарды өзгерту',
+      Language.en: 'Change Avatar',
+    },
+    'avatar_dialog_title': {
+      Language.ru: 'Выберите аватар',
+      Language.kz: 'Аватарды таңдаңыз',
+      Language.en: 'Choose Avatar',
+    },
+    'avatar_from_gallery': {
+      Language.ru: 'Моё фото',
+      Language.kz: 'Менің фотосуретым',
+      Language.en: 'My Photo',
+    },
+    'avatar_defaults': {
+      Language.ru: 'Или выберите из коллекции',
+      Language.kz: 'Немесе коллекциядан таңдаңыз',
+      Language.en: 'Or choose from collection',
+    },
+    'avatar_uploaded': {
+      Language.ru: 'Загруженные фото',
+      Language.kz: 'Жүктелген фотосуреттер',
+      Language.en: 'Uploaded photos',
+    },
+
+    // --- SKIP / AUTH ---
+    'skip': {
+      Language.ru: 'Пропустить',
+      Language.kz: 'Өткізіп жіберу',
+      Language.en: 'Skip',
+    },
+    'auth_title': {
+      Language.ru: 'Вход в приложение',
+      Language.kz: 'Қолданбаға кіру',
+      Language.en: 'Sign In',
+    },
+    'auth_subtitle': {
+      Language.ru: 'Введите ПИН-код для доступа',
+      Language.kz: 'Қол жеткізу үшін PIN-кодты енгізіңіз',
+      Language.en: 'Enter PIN to access',
+    },
+    'auth_register': {
+      Language.ru: 'Регистрация',
+      Language.kz: 'Тіркелу',
+      Language.en: 'Register',
+    },
+    'auth_login': {
+      Language.ru: 'Войти',
+      Language.kz: 'Кіру',
+      Language.en: 'Sign In',
+    },
+    'auth_no_account': {
+      Language.ru: 'Нет аккаунта?',
+      Language.kz: 'Аккаунт жоқ па?',
+      Language.en: 'No account?',
+    },
+    'auth_register_new': {
+      Language.ru: 'Создать новый аккаунт',
+      Language.kz: 'Жаңа аккаунт құру',
+      Language.en: 'Create new account',
+    },
+    'auth_has_account': {
+      Language.ru: 'Уже есть аккаунт?',
+      Language.kz: 'Аккаунт бар ма?',
+      Language.en: 'Already have account?',
+    },
+    'auth_pin_not_set': {
+      Language.ru: 'Установите ПИН-код при регистрации',
+      Language.kz: 'Тіркелу кезінде PIN-кодты орнатыңыз',
+      Language.en: 'Set PIN code during registration',
+    },
   };
 
   static String get(String key) {

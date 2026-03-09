@@ -62,17 +62,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         );
       } else {
         // Если PIN не установлен, показываем экран установки PIN-кода
-        Navigator.pushReplacement(
-          navigatorContext,
+        final rootNavigator = Navigator.of(navigatorContext, rootNavigator: true);
+        rootNavigator.pushReplacement(
           MaterialPageRoute(
             builder: (_) => PinScreen(
               mode: PinMode.setup,
-              onSuccess: () {
-                // После установки PIN переходим в главное приложение
-                // Используем rootNavigator для безопасной навигации
-                final rootNavigator = Navigator.of(navigatorContext, rootNavigator: true);
-                rootNavigator.pushReplacement(
+              onSuccess: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('skip_pin_verify_once', true);
+                rootNavigator.pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const MainContainer()),
+                  (route) => false,
                 );
               },
             ),

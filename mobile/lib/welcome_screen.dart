@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import 'onboarding_screen.dart';
+import 'auth_screen.dart';
+import 'pin_screen.dart';
+import 'main_container.dart';
 import 'localization.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -20,6 +23,31 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+  Future<void> _handleSkip() async {
+    final pinSet = await PinScreen.isPinSet();
+    if (!mounted) return;
+    final navigator = Navigator.of(context);
+    if (pinSet) {
+      navigator.pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => PinScreen(
+            mode: PinMode.verify,
+            onSuccess: () {
+              navigator.pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const MainContainer()),
+                (route) => false,
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      navigator.pushReplacement(
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Language>(
@@ -28,13 +56,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         return Scaffold(
           backgroundColor: const Color(0xFF2E3A59), // Темно-синий фон
           body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Верхняя часть: Заголовок и иконка
-                  Column(
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Верхняя часть: Заголовок и иконка
+                      Column(
                     children: [
                       const SizedBox(height: 40),
                       ClipRRect(
@@ -136,6 +166,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                 ],
               ),
+            ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: TextButton(
+                    onPressed: _handleSkip,
+                    child: Text(
+                      AppStrings.get('skip'),
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
