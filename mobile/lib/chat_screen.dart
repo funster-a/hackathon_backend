@@ -8,13 +8,13 @@ import 'premium_screen.dart';
 import 'alert_helper.dart';
 
 class ChatScreen extends StatefulWidget {
-  final FinanceData financeData;
+  final StartupPlanData planData; // ИЗМЕНЕНО
   final Map<String, dynamic> rawContext;
-  final List<Map<String, String>> messages; 
+  final List<Map<String, String>> messages;
 
   const ChatScreen({
-    super.key, 
-    required this.financeData, 
+    super.key,
+    required this.planData, // ИЗМЕНЕНО
     required this.rawContext,
     required this.messages,
   });
@@ -29,7 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isTyping = false;
   final ScrollController _scrollController = ScrollController();
 
-  // 🔥 БЫСТРЫЕ ПРОМПТЫ (будут обновляться при изменении языка)
+  // 🔥 БЫСТРЫЕ ПРОМПТЫ (Тексты берутся из локализации, потом обновим их в localization.dart)
   List<String> get _suggestions => [
     AppStrings.get('chat_suggestion1'),
     AppStrings.get('chat_suggestion2'),
@@ -65,12 +65,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
-    // Проверяем лимит перед отправкой сообщения
     final usageManager = UsageManager();
     final canProceed = await usageManager.canAction();
-    
+
     if (!canProceed) {
-      // Показываем диалог о лимите
       if (!mounted) return;
       await showLiquidGlassDialog<bool>(
         context: context,
@@ -99,7 +97,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final reply = await _apiService.sendChatMessage(text, widget.rawContext);
 
-    // Увеличиваем счетчик использований только при успешной отправке
     await usageManager.incrementUsage();
 
     if (mounted) {
@@ -117,134 +114,188 @@ class _ChatScreenState extends State<ChatScreen> {
       valueListenable: AppStrings.languageNotifier,
       builder: (context, language, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
-        final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F7);
+        final bgColor = isDark
+            ? const Color(0xFF121212)
+            : const Color(0xFFF5F5F7);
         final bubbleUser = const Color(0xFF2E3A59);
         final bubbleAi = isDark ? const Color(0xFF2C2C2C) : Colors.white;
 
         return Scaffold(
           backgroundColor: bgColor,
           appBar: AppBar(
-            title: Text(AppStrings.get('chat_title'), style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-            automaticallyImplyLeading: false, // Убираем кнопку назад для работы в табах
-          ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: widget.messages.length + (_isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == widget.messages.length) {
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      child: Text(AppStrings.get('chat_typing'), style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
-                    ),
-                  );
-                }
-                final msg = widget.messages[index];
-                final isUser = msg['role'] == 'user';
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.all(14),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
-                    decoration: BoxDecoration(
-                      color: isUser ? bubbleUser : bubbleAi,
-                      borderRadius: BorderRadius.circular(20).copyWith(
-                        bottomRight: isUser ? Radius.zero : null,
-                        bottomLeft: !isUser ? Radius.zero : null,
-                      ),
-                      boxShadow: [
-                        if (!isDark) const BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))
-                      ],
-                    ),
-                    child: Text(
-                      msg['text']!,
-                      style: TextStyle(
-                        color: isUser ? Colors.white : (isDark ? Colors.white : Colors.black87),
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                );
-              },
+            title: Text(
+              AppStrings.get('chat_title'),
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
             ),
+            automaticallyImplyLeading: false,
           ),
-
-          // 🔥 ПАНЕЛЬ БЫСТРЫХ ВОПРОСОВ
-          if (!_isTyping)
-            Container(
-              height: 50,
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: _suggestions.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  return ActionChip(
-                    label: Text(_suggestions[index]),
-                    backgroundColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-                    side: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    onPressed: () => _sendMessage(_suggestions[index]),
-                  );
-                },
+          body: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: widget.messages.length + (_isTyping ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == widget.messages.length) {
+                      return Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 16,
+                          ),
+                          child: Text(
+                            AppStrings.get('chat_typing'),
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    final msg = widget.messages[index];
+                    final isUser = msg['role'] == 'user';
+                    return Align(
+                      alignment: isUser
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.all(14),
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isUser ? bubbleUser : bubbleAi,
+                          borderRadius: BorderRadius.circular(20).copyWith(
+                            bottomRight: isUser ? Radius.zero : null,
+                            bottomLeft: !isUser ? Radius.zero : null,
+                          ),
+                          boxShadow: [
+                            if (!isDark)
+                              const BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 2,
+                                offset: Offset(0, 1),
+                              ),
+                          ],
+                        ),
+                        child: Text(
+                          msg['text']!,
+                          style: TextStyle(
+                            color: isUser
+                                ? Colors.white
+                                : (isDark ? Colors.white : Colors.black87),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
 
-          Container(
-            padding: EdgeInsets.fromLTRB(16, 20, 16, 20 + MediaQuery.of(context).padding.bottom), // Отступ для навбара
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              border: Border(top: BorderSide(color: isDark ? Colors.grey[800]! : Colors.black12)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    minLines: 1,
-                    maxLines: 5,
-                    keyboardType: TextInputType.multiline,
-                    textInputAction: TextInputAction.newline,
-                    textCapitalization: TextCapitalization.sentences,
-                    enableInteractiveSelection: true,
-                    enableSuggestions: true,
-                    autocorrect: true,
-                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                    decoration: InputDecoration(
-                      hintText: AppStrings.get('chat_hint'),
-                      hintStyle: TextStyle(color: isDark ? Colors.grey : null),
-                      filled: true,
-                      fillColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              if (!_isTyping)
+                Container(
+                  height: 50,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _suggestions.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      return ActionChip(
+                        label: Text(_suggestions[index]),
+                        backgroundColor: isDark
+                            ? const Color(0xFF2C2C2C)
+                            : Colors.white,
+                        side: BorderSide(
+                          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        onPressed: () => _sendMessage(_suggestions[index]),
+                      );
+                    },
+                  ),
+                ),
+
+              Container(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  20,
+                  16,
+                  20 + MediaQuery.of(context).padding.bottom,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  border: Border(
+                    top: BorderSide(
+                      color: isDark ? Colors.grey[800]! : Colors.black12,
                     ),
-                    // Убираем onSubmitted для многострочного ввода - отправка только по кнопке
                   ),
                 ),
-                const SizedBox(width: 10),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: FloatingActionButton(
-                    mini: true,
-                    elevation: 0,
-                    backgroundColor: const Color(0xFF2E3A59),
-                    onPressed: () => _sendMessage(_controller.text),
-                    child: const Icon(Icons.arrow_upward, color: Colors.white, size: 20),
-                  ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        minLines: 1,
+                        maxLines: 5,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        textCapitalization: TextCapitalization.sentences,
+                        enableInteractiveSelection: true,
+                        enableSuggestions: true,
+                        autocorrect: true,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: AppStrings.get('chat_hint'),
+                          hintStyle: TextStyle(
+                            color: isDark ? Colors.grey : null,
+                          ),
+                          filled: true,
+                          fillColor: isDark
+                              ? const Color(0xFF2C2C2C)
+                              : Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: FloatingActionButton(
+                        mini: true,
+                        elevation: 0,
+                        backgroundColor: const Color(0xFF2E3A59),
+                        onPressed: () => _sendMessage(_controller.text),
+                        child: const Icon(
+                          Icons.arrow_upward,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
         );
       },
     );

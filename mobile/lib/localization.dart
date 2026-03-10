@@ -4,7 +4,9 @@ enum Language { ru, kz, en }
 
 class AppStrings {
   // 🔥 Магия реактивности: слушаем изменения языка
-  static final ValueNotifier<Language> languageNotifier = ValueNotifier(Language.ru);
+  static final ValueNotifier<Language> languageNotifier = ValueNotifier(
+    Language.ru,
+  );
 
   static Language get currentLanguage => languageNotifier.value;
 
@@ -16,19 +18,19 @@ class AppStrings {
   static final Map<String, Map<Language, String>> _data = {
     // --- ГЛАВНЫЙ ЭКРАН ---
     'total_spent': {
-      Language.ru: 'Всего потрачено',
-      Language.kz: 'Жалпы шығын',
-      Language.en: 'Total Spent',
+      Language.ru: 'Необходимый бюджет',
+      Language.kz: 'Қажетті бюджет',
+      Language.en: 'Required Budget',
     },
     'forecast': {
-      Language.ru: 'Прогноз',
-      Language.kz: 'Болжам',
-      Language.en: 'Forecast',
+      Language.ru: 'Burn Rate',
+      Language.kz: 'Burn Rate',
+      Language.en: 'Burn Rate',
     },
     'categories_title': {
-      Language.ru: 'Анализ категорий',
-      Language.kz: 'Санаттар талдауы',
-      Language.en: 'Categories Analysis',
+      Language.ru: 'Распределение бюджета',
+      Language.kz: 'Бюджетті бөлу',
+      Language.en: 'Budget Distribution',
     },
     'advice_title': {
       Language.ru: 'Совет AI',
@@ -36,43 +38,43 @@ class AppStrings {
       Language.en: 'AI Advice',
     },
     'subs_title': {
-      Language.ru: 'Подписки',
-      Language.kz: 'Жазылымдар',
-      Language.en: 'Subscriptions',
+      Language.ru: 'Команда MVP',
+      Language.kz: 'MVP командасы',
+      Language.en: 'MVP Team',
     },
     'upload_btn': {
-      Language.ru: 'Загрузить другой файл',
-      Language.kz: 'Басқа файлды жүктеу',
-      Language.en: 'Upload another file',
+      Language.ru: 'Рассчитать другую идею',
+      Language.kz: 'Басқа идеяны есептеу',
+      Language.en: 'Calculate another idea',
     },
     'upload_screen_title': {
-      Language.ru: 'Загрузите выписку Kaspi (PDF)',
-      Language.kz: 'Kaspi үзіндісін жүктеңіз (PDF)',
-      Language.en: 'Upload Kaspi Statement (PDF)',
+      Language.ru: 'Опишите идею стартапа',
+      Language.kz: 'Стартап идеяңызды сипаттаңыз',
+      Language.en: 'Describe your startup idea',
     },
     'upload_screen_btn': {
-      Language.ru: 'Выбрать файл',
-      Language.kz: 'Файлды таңдау',
-      Language.en: 'Select File',
+      Language.ru: 'Рассчитать смету',
+      Language.kz: 'Сметаны есептеу',
+      Language.en: 'Calculate Plan',
     },
-    
+
     // --- ЧАТ ---
     'chat_title': {
-      Language.ru: 'AI Ассистент',
-      Language.kz: 'AI Көмекші',
-      Language.en: 'AI Assistant',
+      Language.ru: 'Ментор AI',
+      Language.kz: 'AI Тәлімгер',
+      Language.en: 'AI Mentor',
     },
     'chat_hint': {
-      Language.ru: 'Спроси о финансах...',
-      Language.kz: 'Қаржы туралы сұраңыз...',
-      Language.en: 'Ask about finances...',
+      Language.ru: 'Спроси о стартапе...',
+      Language.kz: 'Стартап туралы сұраңыз...',
+      Language.en: 'Ask about the startup...',
     },
     'chat_empty_message': {
-      Language.ru: 'Загрузите выписку, чтобы начать чат',
-      Language.kz: 'Чатты бастау үшін үзіндіні жүктеңіз',
-      Language.en: 'Upload a statement to start chatting',
+      Language.ru: 'Рассчитайте идею, чтобы начать чат',
+      Language.kz: 'Чатты бастау үшін идеяны есептеңіз',
+      Language.en: 'Calculate an idea to start chatting',
     },
-    
+
     // --- ПРОФИЛЬ ---
     'profile_title': {
       Language.ru: 'Профиль',
@@ -80,9 +82,9 @@ class AppStrings {
       Language.en: 'Profile',
     },
     'profile_guest': {
-      Language.ru: 'Гость',
-      Language.kz: 'Қонақ',
-      Language.en: 'Guest',
+      Language.ru: 'Фаундер',
+      Language.kz: 'Негізін қалаушы (Фаундер)',
+      Language.en: 'Founder',
     },
     'settings_lang': {
       Language.ru: 'Язык приложения',
@@ -95,19 +97,19 @@ class AppStrings {
       Language.en: 'Log Out',
     },
     'status_free': {
-      Language.ru: 'Статус: Бесплатный',
-      Language.kz: 'Статус: Тегін',
-      Language.en: 'Status: Free',
+      Language.ru: 'Статус: Базовый',
+      Language.kz: 'Статус: Базалық',
+      Language.en: 'Status: Basic',
     },
     'status_premium': {
-      Language.ru: 'Статус: PRO',
-      Language.kz: 'Статус: PRO',
-      Language.en: 'Status: PRO',
+      Language.ru: 'Статус: Единорог 🦄',
+      Language.kz: 'Статус: Unicorn 🦄',
+      Language.en: 'Status: Unicorn 🦄',
     },
     'limit_requests': {
-      Language.ru: 'Лимит: 5 запросов',
-      Language.kz: 'Шектеу: 5 сұрау',
-      Language.en: 'Limit: 5 requests',
+      Language.ru: 'Лимит: 5 расчетов',
+      Language.kz: 'Шектеу: 5 есептеу',
+      Language.en: 'Limit: 5 calculations',
     },
     'remaining': {
       Language.ru: 'Осталось',
@@ -120,53 +122,53 @@ class AppStrings {
       Language.en: 'Unlimited',
     },
     'upgrade': {
-      Language.ru: 'Улучшить',
+      Language.ru: 'Прокачать',
       Language.kz: 'Жақсарту',
       Language.en: 'Upgrade',
     },
-    
+
     // --- WELCOME SCREEN ---
     'welcome_title': {
-      Language.ru: 'FinSight',
-      Language.kz: 'FinSight',
-      Language.en: 'FinSight',
+      Language.ru: 'Startup Analyzer',
+      Language.kz: 'Startup Analyzer',
+      Language.en: 'Startup Analyzer',
     },
     'welcome_subtitle': {
-      Language.ru: 'Твой умный финансовый ассистент',
-      Language.kz: 'Сенің ақылды қаржы көмекшің',
-      Language.en: 'Your smart financial assistant',
+      Language.ru: 'Твой личный AI-эдвайзер',
+      Language.kz: 'Сенің жеке AI-кеңесшің',
+      Language.en: 'Your personal AI advisor',
     },
     'welcome_feature1': {
-      Language.ru: 'Загрузи выписку Kaspi PDF',
-      Language.kz: 'Kaspi үзіндісін PDF жүкте',
-      Language.en: 'Upload Kaspi statement PDF',
+      Language.ru: 'Опиши идею стартапа',
+      Language.kz: 'Стартап идеяңды сипатта',
+      Language.en: 'Describe your startup idea',
     },
     'welcome_feature2': {
-      Language.ru: 'Получи аналитику и советы',
-      Language.kz: 'Талдау мен кеңестер алыңыз',
-      Language.en: 'Get analytics and advice',
+      Language.ru: 'Получи смету и план команды',
+      Language.kz: 'Смета мен команда жоспарын ал',
+      Language.en: 'Get a budget and team plan',
     },
     'welcome_feature3': {
-      Language.ru: 'Общайся с AI о финансах',
-      Language.kz: 'AI-мен қаржы туралы сөйлес',
-      Language.en: 'Chat with AI about finances',
+      Language.ru: 'Общайся с AI о стратегии',
+      Language.kz: 'AI-мен стратегия туралы сөйлес',
+      Language.en: 'Discuss strategy with AI',
     },
     'welcome_button': {
-      Language.ru: 'Начать анализ',
-      Language.kz: 'Талдауды бастау',
-      Language.en: 'Start Analysis',
+      Language.ru: 'Создать стартап',
+      Language.kz: 'Стартап құру',
+      Language.en: 'Create Startup',
     },
-    
+
     // --- REGISTRATION SCREEN ---
     'registration_title': {
-      Language.ru: 'Как тебя зовут?',
-      Language.kz: 'Сенің атың кім?',
-      Language.en: 'What\'s your name?',
+      Language.ru: 'Как тебя зовут, фаундер?',
+      Language.kz: 'Атың кім, фаундер?',
+      Language.en: 'What\'s your name, founder?',
     },
     'registration_subtitle': {
-      Language.ru: 'Расскажи нам немного о себе',
-      Language.kz: 'Өзің туралы біраз айтып бер',
-      Language.en: 'Tell us a bit about yourself',
+      Language.ru: 'Давай создадим твой первый единорог',
+      Language.kz: 'Алғашқы unicorn-ды бірге жасайық',
+      Language.en: 'Let\'s build your first unicorn',
     },
     'registration_name_hint': {
       Language.ru: 'Введите ваше имя',
@@ -183,12 +185,12 @@ class AppStrings {
       Language.kz: 'Атыңызды енгізіңіз',
       Language.en: 'Please enter your name',
     },
-    
+
     // --- PREMIUM SCREEN ---
     'premium_title': {
-      Language.ru: 'FinSight PRO',
-      Language.kz: 'FinSight PRO',
-      Language.en: 'FinSight PRO',
+      Language.ru: 'Founder PRO',
+      Language.kz: 'Founder PRO',
+      Language.en: 'Founder PRO',
     },
     'premium_subtitle': {
       Language.ru: 'Разблокируй полную мощь AI',
@@ -196,24 +198,24 @@ class AppStrings {
       Language.en: 'Unlock the full power of AI',
     },
     'premium_feature1': {
-      Language.ru: 'Безлимитные вопросы к AI',
-      Language.kz: 'AI-ға шексіз сұрақтар',
-      Language.en: 'Unlimited AI questions',
+      Language.ru: 'Безлимитные расчеты идей',
+      Language.kz: 'Шексіз идеяларды есептеу',
+      Language.en: 'Unlimited idea calculations',
     },
     'premium_feature2': {
-      Language.ru: 'Глубокий анализ долгов',
-      Language.kz: 'Қарыздарды терең талдау',
-      Language.en: 'Deep debt analysis',
+      Language.ru: 'Глубокий анализ бизнес-модели',
+      Language.kz: 'Бизнес-модельді терең талдау',
+      Language.en: 'Deep business model analysis',
     },
     'premium_feature3': {
-      Language.ru: 'Экспорт отчетов в Excel',
-      Language.kz: 'Есептерді Excel-ге экспорттау',
-      Language.en: 'Export reports to Excel',
+      Language.ru: 'Экспорт pitch deck (PDF/PPT)',
+      Language.kz: 'Pitch deck экспорты (PDF/PPT)',
+      Language.en: 'Export pitch deck (PDF/PPT)',
     },
     'premium_feature4': {
-      Language.ru: 'Семейный доступ',
-      Language.kz: 'Отбасылық қол жетімділік',
-      Language.en: 'Family access',
+      Language.ru: 'Доступ для кофаундеров',
+      Language.kz: 'Кофаундерлерге қол жетімділік',
+      Language.en: 'Co-founder access',
     },
     'premium_price': {
       Language.ru: '990 ₸ / месяц',
@@ -235,81 +237,87 @@ class AppStrings {
       Language.kz: 'Демо режим: Сатып алу сәтті!',
       Language.en: 'Demo mode: Purchase successful!',
     },
-    
+
     // --- CHAT SCREEN ---
     'chat_welcome_message': {
-      Language.ru: 'Привет! Я твой финансовый ассистент FinSight. Я могу помочь тебе с анализом расходов, планированием бюджета и финансовыми советами. Загрузи выписку, чтобы я мог дать более точные рекомендации!',
-      Language.kz: 'Сәлем! Мен сенің қаржы көмекшің FinSight. Мен шығындарды талдауға, бюджетті жоспарлауға және қаржылық кеңестерге көмектесе аламын. Дәлірек ұсыныстар беру үшін үзіндіні жүкте!',
-      Language.en: 'Hello! I\'m your financial assistant FinSight. I can help you with expense analysis, budget planning, and financial advice. Upload a statement so I can give you more accurate recommendations!',
+      Language.ru:
+          'Привет! Я твой AI-ментор по стартапам. Я помогу рассчитать бюджет, подобрать команду и составить план для MVP. Опиши свою идею, и мы начнем!',
+      Language.kz:
+          'Сәлем! Мен сенің стартаптар бойынша AI-тәлімгеріңмін. Бюджетті есептеуге, MVP командасын жинауға көмектесемін. Өз идеяңды сипатта, бастайық!',
+      Language.en:
+          'Hello! I\'m your startup AI mentor. I will help calculate your budget, select a team, and create an MVP plan. Describe your idea and let\'s start!',
     },
     'chat_typing': {
-      Language.ru: 'AI печатает...',
-      Language.kz: 'AI теріп жатыр...',
-      Language.en: 'AI typing...',
+      Language.ru: 'AI думает над стратегией...',
+      Language.kz: 'AI стратегияны ойластырып жатыр...',
+      Language.en: 'AI is thinking about strategy...',
     },
     'chat_suggestion1': {
-      Language.ru: '📉 Как мне сэкономить?',
-      Language.kz: '📉 Қалай үнемдеуге болады?',
-      Language.en: '📉 How can I save money?',
+      Language.ru: '📉 Как сэкономить на серверах?',
+      Language.kz: '📉 Серверлерден қалай үнемдеуге болады?',
+      Language.en: '📉 How to save on servers?',
     },
     'chat_suggestion2': {
-      Language.ru: '🏆 Топ моих расходов?',
-      Language.kz: '🏆 Менің шығындарымның топы?',
-      Language.en: '🏆 Top of my expenses?',
+      Language.ru: '🏆 Какие специалисты нужны?',
+      Language.kz: '🏆 Қандай мамандар қажет?',
+      Language.en: '🏆 What specialists do I need?',
     },
     'chat_suggestion3': {
-      Language.ru: '🔮 Прогноз на месяц',
-      Language.kz: '🔮 Айға болжам',
-      Language.en: '🔮 Forecast for the month',
+      Language.ru: '🔮 Как найти первых клиентов?',
+      Language.kz: '🔮 Алғашқы клиенттерді қалай табамын?',
+      Language.en: '🔮 How to find first clients?',
     },
     'chat_suggestion4': {
-      Language.ru: '🍔 Сколько ушло на еду?',
-      Language.kz: '🍔 Тағамға қанша кетті?',
-      Language.en: '🍔 How much spent on food?',
+      Language.ru: '🍔 Какой маркетинговый бюджет нужен?',
+      Language.kz: '🍔 Маркетингке қанша бюджет керек?',
+      Language.en: '🍔 What marketing budget is needed?',
     },
     'chat_suggestion5': {
-      Language.ru: '🚕 Много ли я трачу на такси?',
-      Language.kz: '🚕 Таксиге көп жұмсаймын ба?',
-      Language.en: '🚕 Do I spend a lot on taxis?',
+      Language.ru: '🚕 Как уменьшить Burn Rate?',
+      Language.kz: '🚕 Burn Rate-ті қалай азайтамыз?',
+      Language.en: '🚕 How to reduce Burn Rate?',
     },
     'chat_suggestion6': {
-      Language.ru: '💳 Есть ли скрытые подписки?',
-      Language.kz: '💳 Жасырын жазылымдар бар ма?',
-      Language.en: '💳 Are there hidden subscriptions?',
+      Language.ru: '💳 Как привлечь инвестора?',
+      Language.kz: '💳 Инвесторды қалай тартамын?',
+      Language.en: '💳 How to attract investors?',
     },
     'chat_error': {
-      Language.ru: 'Ошибка связи с AI 😔',
-      Language.kz: 'AI-мен байланыс қатесі 😔',
-      Language.en: 'AI connection error 😔',
+      Language.ru: 'Ошибка связи с сервером 😔',
+      Language.kz: 'Сервермен байланыс қатесі 😔',
+      Language.en: 'Server connection error 😔',
     },
-    
+
     // --- MAIN SCREEN ---
     'ai_chat_button': {
-      Language.ru: 'AI Чат',
-      Language.kz: 'AI Чат',
-      Language.en: 'AI Chat',
+      Language.ru: 'Чат с Ментором',
+      Language.kz: 'Тәлімгермен Чат',
+      Language.en: 'Chat with Mentor',
     },
     'app_title': {
-      Language.ru: 'FinSight',
-      Language.kz: 'FinSight',
-      Language.en: 'FinSight',
+      Language.ru: 'Startup Analyzer',
+      Language.kz: 'Startup Analyzer',
+      Language.en: 'Startup Analyzer',
     },
     'dashboard_title': {
-      Language.ru: 'Дашборд',
-      Language.kz: 'Бақылау тақтасы',
-      Language.en: 'Dashboard',
+      Language.ru: 'Смета',
+      Language.kz: 'Смета',
+      Language.en: 'Estimation',
     },
-    
+
     // --- LIMIT DIALOGS ---
     'limit_exceeded_title': {
-      Language.ru: 'Лимит исчерпан',
-      Language.kz: 'Шектеу аяқталды',
-      Language.en: 'Limit Exceeded',
+      Language.ru: 'Лимит расчетов исчерпан',
+      Language.kz: 'Есептеу шегі аяқталды',
+      Language.en: 'Calculation Limit Exceeded',
     },
     'limit_exceeded_message': {
-      Language.ru: 'Вы использовали все бесплатные действия. Перейдите на PRO для безлимитного доступа.',
-      Language.kz: 'Сіз барлық тегін әрекеттерді пайдаландыңыз. Шексіз қол жетімділік үшін PRO-ға өтіңіз.',
-      Language.en: 'You have used all free actions. Upgrade to PRO for unlimited access.',
+      Language.ru:
+          'Вы использовали все бесплатные расчеты идей. Перейдите на PRO для безлимитного доступа.',
+      Language.kz:
+          'Сіз барлық тегін идея есептеулерін пайдаландыңыз. Шексіз қол жетімділік үшін PRO-ға өтіңіз.',
+      Language.en:
+          'You have used all free idea calculations. Upgrade to PRO for unlimited access.',
     },
     'go_to_premium': {
       Language.ru: 'Перейти на PRO',
@@ -326,64 +334,67 @@ class AppStrings {
       Language.kz: 'Сіз PRO-ға өттіңіз!',
       Language.en: 'You upgraded to PRO!',
     },
-    
-    // --- PERIOD FILTER ---
+
+    // --- PERIOD FILTER (Может не использоваться, но оставим для совместимости) ---
     'period_week': {
-      Language.ru: 'Неделя',
-      Language.kz: 'Апта',
-      Language.en: 'Week',
+      Language.ru: 'MVP (3 мес)',
+      Language.kz: 'MVP (3 ай)',
+      Language.en: 'MVP (3 mo)',
     },
     'period_month': {
-      Language.ru: 'Месяц',
-      Language.kz: 'Ай',
-      Language.en: 'Month',
+      Language.ru: '1 Год',
+      Language.kz: '1 Жыл',
+      Language.en: '1 Year',
     },
     'period_all': {
-      Language.ru: 'Все',
-      Language.kz: 'Барлығы',
-      Language.en: 'All',
+      Language.ru: 'Все время',
+      Language.kz: 'Барлық уақыт',
+      Language.en: 'All time',
     },
     'recent_transactions': {
-      Language.ru: 'Последние транзакции',
-      Language.kz: 'Соңғы транзакциялар',
-      Language.en: 'Recent Transactions',
+      Language.ru: 'Последние изменения',
+      Language.kz: 'Соңғы өзгерістер',
+      Language.en: 'Recent changes',
     },
-    
+
     // --- GOALS SCREEN ---
     'goals_title': {
-      Language.ru: 'Цели',
-      Language.kz: 'Қаржылық мақсаттар',
-      Language.en: 'Financial Goals',
+      Language.ru: 'Бизнес Цели',
+      Language.kz: 'Бизнес Мақсаттар',
+      Language.en: 'Business Goals',
     },
     'goals_subtitle': {
-      Language.ru: 'Укажите вашу финансовую цель и доход, чтобы получать более персонализированные советы',
-      Language.kz: 'Жекеленген кеңестер алу үшін қаржылық мақсатыңызды және табысыңызды көрсетіңіз',
-      Language.en: 'Specify your financial goal and income to receive more personalized advice',
+      Language.ru:
+          'Укажите цель вашего стартапа и начальный бюджет для персонализации',
+      Language.kz:
+          'Жекелендіру үшін стартаптың мақсатын және бастапқы бюджетті көрсетіңіз',
+      Language.en:
+          'Specify your startup goal and initial budget for personalization',
     },
     'goals_goal_label': {
-      Language.ru: 'Ваша финансовая цель',
-      Language.kz: 'Сіздің қаржылық мақсатыңыз',
-      Language.en: 'Your Financial Goal',
+      Language.ru: 'Цель стартапа',
+      Language.kz: 'Стартап мақсаты',
+      Language.en: 'Startup Goal',
     },
     'goals_goal_hint': {
-      Language.ru: 'Например: Накопить 1 млн на машину',
-      Language.kz: 'Мысалы: Көлікке 1 млн жинау',
-      Language.en: 'For example: Save 1 million for a car',
+      Language.ru: 'Например: Запустить MVP за 3 месяца',
+      Language.kz: 'Мысалы: MVP-ді 3 айда іске қосу',
+      Language.en: 'For example: Launch MVP in 3 months',
     },
     'goals_income_label': {
-      Language.ru: 'Ваш ежемесячный доход',
-      Language.kz: 'Сіздің айлық табысыңыз',
-      Language.en: 'Your Monthly Income',
+      Language.ru: 'Доступный начальный капитал',
+      Language.kz: 'Қолжетімді бастапқы капитал',
+      Language.en: 'Available Initial Capital',
     },
     'goals_income_hint': {
-      Language.ru: 'Выберите диапазон дохода',
-      Language.kz: 'Табыс диапазонын таңдаңыз',
-      Language.en: 'Select income range',
+      Language.ru: 'Выберите диапазон инвестиций',
+      Language.kz: 'Инвестиция диапазонын таңдаңыз',
+      Language.en: 'Select investment range',
     },
     'goals_save_button': {
-      Language.ru: 'Сохранить',
-      Language.kz: 'Сақтау',
-      Language.en: 'Save',
+      Language.ru: 'Сохранить план',
+      Language.kz: 'Жоспарды сақтау',
+      Language.en: 'Save Plan',
     },
     'goals_saved': {
       Language.ru: 'Цель успешно сохранена!',
@@ -391,9 +402,9 @@ class AppStrings {
       Language.en: 'Goal saved successfully!',
     },
     'goals_error_empty': {
-      Language.ru: 'Пожалуйста, укажите финансовую цель',
-      Language.kz: 'Қаржылық мақсатты көрсетіңіз',
-      Language.en: 'Please specify your financial goal',
+      Language.ru: 'Пожалуйста, укажите цель стартапа',
+      Language.kz: 'Стартап мақсатын көрсетіңіз',
+      Language.en: 'Please specify your startup goal',
     },
     'goals_error_save': {
       Language.ru: 'Ошибка при сохранении',
@@ -401,46 +412,46 @@ class AppStrings {
       Language.en: 'Error saving',
     },
     'goals_menu_item': {
-      Language.ru: 'Финансовые цели',
-      Language.kz: 'Қаржылық мақсаттар',
-      Language.en: 'Financial Goals',
+      Language.ru: 'Цели стартапа',
+      Language.kz: 'Стартап мақсаттары',
+      Language.en: 'Startup Goals',
     },
     'goals_saved_list_title': {
-      Language.ru: 'Сохраненные цели',
-      Language.kz: 'Сақталған мақсаттар',
-      Language.en: 'Saved Goals',
+      Language.ru: 'Сохраненные планы',
+      Language.kz: 'Сақталған жоспарлар',
+      Language.en: 'Saved Plans',
     },
     'goals_income_option1': {
-      Language.ru: 'До 100 000 ₸',
-      Language.kz: '100 000 ₸ дейін',
-      Language.en: 'Up to 100,000 ₸',
+      Language.ru: 'До 1 000 000 ₸',
+      Language.kz: '1 000 000 ₸ дейін',
+      Language.en: 'Up to 1,000,000 ₸',
     },
     'goals_income_option2': {
-      Language.ru: '100 000 - 200 000 ₸',
-      Language.kz: '100 000 - 200 000 ₸',
-      Language.en: '100,000 - 200,000 ₸',
+      Language.ru: '1 000 000 - 5 000 000 ₸',
+      Language.kz: '1 000 000 - 5 000 000 ₸',
+      Language.en: '1,000,000 - 5,000,000 ₸',
     },
     'goals_income_option3': {
-      Language.ru: '200 000 - 300 000 ₸',
-      Language.kz: '200 000 - 300 000 ₸',
-      Language.en: '200,000 - 300,000 ₸',
+      Language.ru: '5 000 000 - 10 000 000 ₸',
+      Language.kz: '5 000 000 - 10 000 000 ₸',
+      Language.en: '5,000,000 - 10,000,000 ₸',
     },
     'goals_income_option4': {
-      Language.ru: '300 000 - 500 000 ₸',
-      Language.kz: '300 000 - 500 000 ₸',
-      Language.en: '300,000 - 500,000 ₸',
+      Language.ru: '10 000 000 - 50 000 000 ₸',
+      Language.kz: '10 000 000 - 50 000 000 ₸',
+      Language.en: '10,000,000 - 50,000,000 ₸',
     },
     'goals_income_option5': {
-      Language.ru: '500 000 - 1 000 000 ₸',
-      Language.kz: '500 000 - 1 000 000 ₸',
-      Language.en: '500,000 - 1,000,000 ₸',
+      Language.ru: '50 000 000 - 100 000 000 ₸',
+      Language.kz: '50 000 000 - 100 000 000 ₸',
+      Language.en: '50,000,000 - 100,000,000 ₸',
     },
     'goals_income_option6': {
-      Language.ru: 'Свыше 1 000 000 ₸',
-      Language.kz: '1 000 000 ₸ астам',
-      Language.en: 'Over 1,000,000 ₸',
+      Language.ru: 'Свыше 100 000 000 ₸',
+      Language.kz: '100 000 000 ₸ астам',
+      Language.en: 'Over 100,000,000 ₸',
     },
-    
+
     // --- PIN SCREEN ---
     'pin_setup_title': {
       Language.ru: 'Установите ПИН-код',
@@ -468,9 +479,9 @@ class AppStrings {
       Language.en: 'Enter PIN Code',
     },
     'pin_verify_subtitle': {
-      Language.ru: 'Для доступа к приложению',
-      Language.kz: 'Қолданбаға кіру үшін',
-      Language.en: 'To access the app',
+      Language.ru: 'Для доступа к проекту',
+      Language.kz: 'Жобаға кіру үшін',
+      Language.en: 'To access the project',
     },
     'pin_enter_old_title': {
       Language.ru: 'Введите текущий ПИН-код',
@@ -542,8 +553,8 @@ class AppStrings {
       Language.en: 'Skip',
     },
     'auth_title': {
-      Language.ru: 'Вход в приложение',
-      Language.kz: 'Қолданбаға кіру',
+      Language.ru: 'Вход в систему',
+      Language.kz: 'Жүйеге кіру',
       Language.en: 'Sign In',
     },
     'auth_subtitle': {
@@ -586,7 +597,7 @@ class AppStrings {
   static String get(String key) {
     return _data[key]?[currentLanguage] ?? key;
   }
-  
+
   // Получить код языка для API (ru, kz, en)
   static String get languageCode {
     switch (currentLanguage) {

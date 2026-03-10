@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,14 +9,11 @@ import 'api_service.dart';
 import 'models.dart';
 import 'welcome_screen.dart';
 import 'premium_screen.dart';
-import 'theme_helper.dart';
 import 'profile_screen.dart';
 import 'localization.dart';
 import 'usage_manager.dart';
 import 'alert_helper.dart';
-
-// Enum для периодов фильтрации
-enum FilterPeriod { week, month, all }
+import 'theme_helper.dart';
 
 // Глобальный ключ для доступа к MyAppState из любого места
 final GlobalKey<_MyAppState> appStateKey = GlobalKey<_MyAppState>();
@@ -40,19 +35,15 @@ class _MyAppState extends State<MyApp> {
 
   void toggleTheme() {
     if (!mounted) return;
-    
     setState(() {
       switch (_themeMode) {
         case ThemeMode.system:
-          // Переключаемся на светлую тему
           _themeMode = ThemeMode.light;
           break;
         case ThemeMode.light:
-          // Переключаемся на темную тему
           _themeMode = ThemeMode.dark;
           break;
         case ThemeMode.dark:
-          // Возвращаемся к системной теме
           _themeMode = ThemeMode.system;
           break;
       }
@@ -72,23 +63,20 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // 🔥 Слушаем изменения языка
     return ValueListenableBuilder<Language>(
       valueListenable: AppStrings.languageNotifier,
       builder: (context, language, child) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-          title: 'FinSight',
-          
-          // ☀️ СВЕТЛАЯ ТЕМА (Стандартная)
-      theme: ThemeData(
-        useMaterial3: true,
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Startup Analyzer',
+          theme: ThemeData(
+            useMaterial3: true,
             brightness: Brightness.light,
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF2E3A59),
               brightness: Brightness.light,
             ),
-        scaffoldBackgroundColor: const Color(0xFFF5F5F7),
+            scaffoldBackgroundColor: const Color(0xFFF5F5F7),
             appBarTheme: const AppBarTheme(
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
@@ -97,19 +85,17 @@ class _MyAppState extends State<MyApp> {
             cardColor: Colors.white,
             textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
           ),
-
-          // 🌑 ТЕМНАЯ ТЕМА (Новая!)
           darkTheme: ThemeData(
             useMaterial3: true,
             brightness: Brightness.dark,
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF2E3A59),
               brightness: Brightness.dark,
-              primary: const Color(0xFF6C84B8), // Чуть светлее для темного фона
+              primary: const Color(0xFF6C84B8),
               secondary: Colors.amber,
             ),
-            scaffoldBackgroundColor: const Color(0xFF121212), // Почти черный фон
-            cardColor: const Color(0xFF1E1E1E), // Темно-серые карточки
+            scaffoldBackgroundColor: const Color(0xFF121212),
+            cardColor: const Color(0xFF1E1E1E),
             appBarTheme: const AppBarTheme(
               backgroundColor: Color(0xFF1E1E1E),
               foregroundColor: Colors.white,
@@ -117,10 +103,7 @@ class _MyAppState extends State<MyApp> {
             ),
             textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
           ),
-
-          // ⚙️ Ручное переключение темы
-          themeMode: _themeMode, 
-          
+          themeMode: _themeMode,
           home: const WelcomeScreen(),
         );
       },
@@ -128,10 +111,10 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-
 class FinanceScreen extends StatefulWidget {
-  final Function(FinanceData, Map<String, dynamic>)? onChatRequested;
-  
+  // Обратите внимание: теперь тут StartupPlanData вместо FinanceData
+  final Function(StartupPlanData, Map<String, dynamic>)? onChatRequested;
+
   const FinanceScreen({super.key, this.onChatRequested});
 
   @override
@@ -140,28 +123,26 @@ class FinanceScreen extends StatefulWidget {
 
 class _FinanceScreenState extends State<FinanceScreen> {
   final ApiService _apiService = ApiService();
-  FinanceData? _data;
+  final TextEditingController _ideaController = TextEditingController();
+
+  StartupPlanData? _data;
   Map<String, dynamic>? _rawJson;
   bool _isLoading = false;
   String? _error;
-  final List<Map<String, String>> _chatHistory = [];
-  FilterPeriod _selectedPeriod = FilterPeriod.all;
-  
-  // Кэш для оптимизации фильтрации (мгновенный отклик)
-  Map<FilterPeriod, List<TransactionItem>>? _cachedFilteredTransactions;
-  Map<FilterPeriod, List<CategoryItem>>? _cachedFilteredCategories;
-  Map<FilterPeriod, double>? _cachedFilteredTotals;
 
-  Future<void> _pickAndUpload() async {
+  Future<void> _submitIdea() async {
+    if (_ideaController.text.trim().isEmpty) {
+      setState(() => _error = "Пожалуйста, опишите идею стартапа");
+      return;
+    }
+
     if (!mounted) return;
     setState(() => _error = null);
 
-    // Проверяем лимит перед загрузкой
     final usageManager = UsageManager();
     final canProceed = await usageManager.canAction();
-    
+
     if (!canProceed) {
-      // Показываем диалог о лимите
       if (!mounted) return;
       await showLiquidGlassDialog<bool>(
         context: context,
@@ -181,113 +162,81 @@ class _FinanceScreenState extends State<FinanceScreen> {
       return;
     }
 
+    setState(() => _isLoading = true);
+
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'],
+      final jsonResponse = await _apiService.calculateStartupPlan(
+        _ideaController.text,
       );
 
-      if (result != null) {
-        if (!mounted) return;
-        setState(() => _isLoading = true);
+      if (jsonResponse.isEmpty) throw Exception("Пустой ответ от сервера");
 
-        File file = File(result.files.single.path!);
-        
-        try {
-          final jsonResponse = await _apiService.uploadStatement(file);
-          
-          // Проверяем, что ответ не пустой
-          if (jsonResponse.isEmpty) {
-            throw Exception("Пустой ответ от сервера");
-          }
-          
-          // Пытаемся распарсить JSON
-          try {
-            final financeData = FinanceData.fromJson(jsonResponse);
-            
-            // Увеличиваем счетчик использований только при успешной загрузке
-            await usageManager.incrementUsage();
-            
-            // Сохраняем данные в SharedPreferences для ChatScreen
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString('finance_data_json', jsonEncode(jsonResponse));
-            
-            // Вызываем callback для обновления данных в MainContainer
-            if (widget.onChatRequested != null) {
-              widget.onChatRequested!(financeData, jsonResponse);
-            }
-            
-            if (!mounted) return;
-            setState(() {
-              _rawJson = jsonResponse;
-              _data = financeData;
-              _chatHistory.clear();
-              _chatHistory.add({
-                "role": "ai", 
-                "text": AppStrings.get('chat_welcome_message')
-              });
-              // Очищаем кэш при загрузке новых данных
-              _clearCache();
-            });
-          } catch (parseError) {
-            print("Ошибка парсинга JSON: $parseError");
-            print("JSON ответ: ${jsonResponse.toString().substring(0, 500)}");
-            throw Exception("Ошибка обработки данных: $parseError");
-          }
-        } catch (apiError) {
-          print("Ошибка API: $apiError");
-          rethrow;
-        }
+      final planData = StartupPlanData.fromJson(jsonResponse);
+
+      await usageManager.incrementUsage();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('finance_data_json', jsonEncode(jsonResponse));
+
+      if (widget.onChatRequested != null) {
+        widget.onChatRequested!(planData, jsonResponse);
       }
+
+      if (!mounted) return;
+      setState(() {
+        _rawJson = jsonResponse;
+        _data = planData;
+      });
     } catch (e) {
       if (!mounted) return;
       final errorMessage = e.toString();
-      print("Полная ошибка загрузки: $errorMessage");
       setState(() {
-        _error = "Не удалось загрузить. Проверьте сервер.\nОшибка: ${errorMessage.length > 100 ? errorMessage.substring(0, 100) : errorMessage}";
+        _error =
+            "Ошибка расчета: ${errorMessage.length > 100 ? errorMessage.substring(0, 100) : errorMessage}";
       });
     } finally {
       if (mounted) {
-      setState(() => _isLoading = false);
+        setState(() => _isLoading = false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final kztFormatter = NumberFormat.currency(symbol: '₸', decimalDigits: 0, locale: 'ru');
+    final kztFormatter = NumberFormat.currency(
+      symbol: '₸',
+      decimalDigits: 0,
+      locale: 'ru',
+    );
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isInContainer = widget.onChatRequested != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: ValueListenableBuilder<Language>(
-          valueListenable: AppStrings.languageNotifier,
-          builder: (context, language, child) {
-            return Text(
-              AppStrings.get('dashboard_title'),
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            );
-          },
+        title: const Text(
+          'План Стартапа',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        automaticallyImplyLeading: false, // Убираем кнопку назад для работы в табах
+        automaticallyImplyLeading: false,
         leading: isInContainer
-            ? null // Убираем кнопку профиля, если экран в контейнере (профиль в навигации)
+            ? null
             : IconButton(
                 icon: const Icon(Icons.person_outline),
                 onPressed: () {
                   Navigator.push(
-                    context, 
-                    MaterialPageRoute(builder: (_) => ProfileScreen(
-                      onLogout: () {
-                        setState(() {
-                          _data = null;
-                          _rawJson = null;
-                          _chatHistory.clear();
-                        });
-                      },
-                    ))
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProfileScreen(
+                        onLogout: () {
+                          setState(() {
+                            _data = null;
+                            _rawJson = null;
+                            _ideaController.clear();
+                          });
+                        },
+                      ),
+                    ),
                   );
                 },
               ),
@@ -295,277 +244,94 @@ class _FinanceScreenState extends State<FinanceScreen> {
           StatefulBuilder(
             builder: (context, setState) {
               return IconButton(
-                icon: Icon(getThemeIcon()),
-                tooltip: 'Переключить тему',
+                icon: Icon(
+                  appStateKey.currentState?.themeIcon ?? Icons.brightness_auto,
+                ),
                 onPressed: () {
-                  toggleTheme();
-                  setState(() {});
+                  appStateKey.currentState?.toggleTheme();
                 },
               );
             },
           ),
           IconButton(
-            icon: const Icon(Icons.workspace_premium, color: Colors.amber, size: 28),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumScreen())),
+            icon: const Icon(
+              Icons.workspace_premium,
+              color: Colors.amber,
+              size: 28,
+            ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PremiumScreen()),
+            ),
           ),
         ],
       ),
       body: _isLoading
           ? const FunLoader()
           : _data == null
-          ? _buildUploadButton()
-              : _buildDashboard(kztFormatter, isDark),
+          ? _buildInputScreen()
+          : _buildDashboard(kztFormatter, isDark),
     );
   }
 
-  Widget _buildUploadButton() {
-    return ValueListenableBuilder<Language>(
-      valueListenable: AppStrings.languageNotifier,
-      builder: (context, language, child) {
+  Widget _buildInputScreen() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.upload_file, size: 80, color: Colors.blueGrey[200]),
-          const SizedBox(height: 20),
-              Text(AppStrings.get('upload_screen_title'), style: const TextStyle(fontSize: 18)),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(_error!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.rocket_launch, size: 80, color: Colors.blueGrey[200]),
+            const SizedBox(height: 20),
+            const Text(
+              'Опишите идею вашего стартапа',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-          const SizedBox(height: 30),
-          ElevatedButton.icon(
-            onPressed: _pickAndUpload,
-            icon: const Icon(Icons.add, color: Colors.white),
-                label: Text(AppStrings.get('upload_screen_btn'), style: const TextStyle(color: Colors.white)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2E3A59),
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _ideaController,
+              maxLines: 5,
+              decoration: InputDecoration(
+                hintText:
+                    'Например: маркетплейс для поиска репетиторов с ИИ-подбором...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
+              ),
             ),
-          ),
-        ],
+            if (_error != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            const SizedBox(height: 30),
+            ElevatedButton.icon(
+              onPressed: _submitIdea,
+              icon: const Icon(Icons.analytics, color: Colors.white),
+              label: const Text(
+                'Рассчитать смету',
+                style: TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2E3A59),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30,
+                  vertical: 15,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
-      },
-    );
-  }
-
-  // Очистка кэша при изменении данных
-  void _clearCache() {
-    _cachedFilteredTransactions = null;
-    _cachedFilteredCategories = null;
-    _cachedFilteredTotals = null;
-  }
-  
-  // Фильтрация транзакций по выбранному периоду (с кэшированием)
-  List<TransactionItem> _getFilteredTransactions() {
-    if (_data == null || _data!.transactions.isEmpty) return [];
-    
-    // Проверяем кэш
-    if (_cachedFilteredTransactions != null && 
-        _cachedFilteredTransactions!.containsKey(_selectedPeriod)) {
-      return _cachedFilteredTransactions![_selectedPeriod]!;
-    }
-    
-    // Инициализируем кэш, если его нет
-    _cachedFilteredTransactions ??= {};
-    
-    List<TransactionItem> filtered;
-    
-    switch (_selectedPeriod) {
-      case FilterPeriod.week:
-        // Находим самую последнюю дату в транзакциях
-        final sortedTransactions = List<TransactionItem>.from(_data!.transactions);
-        sortedTransactions.sort((a, b) => b.date.compareTo(a.date));
-        if (sortedTransactions.isEmpty) {
-          filtered = [];
-          break;
-        }
-        final lastDate = sortedTransactions.first.date;
-        final lastDateNormalized = DateTime(lastDate.year, lastDate.month, lastDate.day);
-        final weekStart = lastDateNormalized.subtract(const Duration(days: 6));
-        
-        filtered = _data!.transactions.where((transaction) {
-          final transactionDate = DateTime(transaction.date.year, transaction.date.month, transaction.date.day);
-          // Проверяем, что транзакция в диапазоне от weekStart до lastDate включительно
-          return !transactionDate.isBefore(weekStart) && !transactionDate.isAfter(lastDateNormalized);
-        }).toList();
-        break;
-      case FilterPeriod.month:
-        // Находим самую последнюю дату в транзакциях
-        final sortedTransactions = List<TransactionItem>.from(_data!.transactions);
-        sortedTransactions.sort((a, b) => b.date.compareTo(a.date));
-        if (sortedTransactions.isEmpty) {
-          filtered = [];
-          break;
-        }
-        final lastDate = sortedTransactions.first.date;
-        final monthStart = DateTime(lastDate.year, lastDate.month, 1);
-        final lastDateNormalized = DateTime(lastDate.year, lastDate.month, lastDate.day);
-        
-        filtered = _data!.transactions.where((transaction) {
-          final transactionDate = DateTime(transaction.date.year, transaction.date.month, transaction.date.day);
-          // Проверяем, что транзакция в том же месяце, что и последняя транзакция
-          return transactionDate.year == lastDate.year && 
-                 transactionDate.month == lastDate.month &&
-                 !transactionDate.isBefore(monthStart) &&
-                 !transactionDate.isAfter(lastDateNormalized);
-        }).toList();
-        break;
-      case FilterPeriod.all:
-        filtered = _data!.transactions;
-        break;
-    }
-    
-    // Сохраняем в кэш
-    _cachedFilteredTransactions![_selectedPeriod] = filtered;
-    return filtered;
-  }
-  
-  // Вычисление суммы отфильтрованных транзакций (с кэшированием)
-  double _getFilteredTotal() {
-    if (_data == null) return 0.0;
-    
-    // Для периода "Все" используем total_spent из исходных данных
-    // Это гарантирует, что сумма совпадает с суммами категорий
-    if (_selectedPeriod == FilterPeriod.all) {
-      return _data!.totalSpent;
-    }
-    
-    // Проверяем кэш
-    if (_cachedFilteredTotals != null && 
-        _cachedFilteredTotals!.containsKey(_selectedPeriod)) {
-      return _cachedFilteredTotals![_selectedPeriod]!;
-    }
-    
-    // Инициализируем кэш, если его нет
-    _cachedFilteredTotals ??= {};
-    
-    // Для других периодов вычисляем сумму из отфильтрованных транзакций
-    if (_data!.transactions.isEmpty) {
-      _cachedFilteredTotals![_selectedPeriod] = 0.0;
-      return 0.0;
-    }
-    
-    final filtered = _getFilteredTransactions();
-    final total = filtered.fold(0.0, (sum, transaction) => sum + transaction.amount);
-    
-    // Сохраняем в кэш
-    _cachedFilteredTotals![_selectedPeriod] = total;
-    return total;
-  }
-  
-  // Вспомогательная функция для поиска категории по любому названию
-  CategoryItem? _findCategoryByName(String categoryName) {
-    for (var cat in _data!.categories) {
-      // Проверяем все варианты названий
-      if (cat.name == categoryName ||
-          cat.nameRu == categoryName ||
-          cat.nameKz == categoryName ||
-          cat.nameEn == categoryName) {
-        return cat;
-      }
-    }
-    return null;
-  }
-  
-  // Вычисление категорий из отфильтрованных транзакций (с кэшированием)
-  List<CategoryItem> _getFilteredCategories() {
-    if (_data == null) return [];
-    
-    // Проверяем кэш
-    if (_cachedFilteredCategories != null && 
-        _cachedFilteredCategories!.containsKey(_selectedPeriod)) {
-      return _cachedFilteredCategories![_selectedPeriod]!;
-    }
-    
-    // Инициализируем кэш, если его нет
-    _cachedFilteredCategories ??= {};
-    
-    List<CategoryItem> categories;
-    
-    // Если выбран период "All", используем оригинальные категории с переводами
-    if (_selectedPeriod == FilterPeriod.all) {
-      final currentLang = AppStrings.languageCode;
-      categories = _data!.categories.map((cat) {
-        final localizedName = cat.getNameForLanguage(currentLang);
-        // Создаем новый Color объект, чтобы убедиться, что цвет правильно передается
-        final categoryColor = Color(cat.color.value);
-        return CategoryItem(
-          name: localizedName,
-          nameRu: cat.nameRu ?? cat.name,
-          nameKz: cat.nameKz ?? cat.name,
-          nameEn: cat.nameEn ?? cat.name,
-          amount: cat.amount,
-          percent: cat.percent,
-          color: categoryColor,
-        );
-      }).toList();
-    } else {
-      // Для других периодов фильтруем транзакции
-      final filtered = _getFilteredTransactions();
-      if (filtered.isEmpty) {
-        _cachedFilteredCategories![_selectedPeriod] = [];
-        return [];
-      }
-      
-      // Группируем транзакции по категориям (используем оригинальное название категории)
-      final Map<CategoryItem, double> categoryAmounts = {};
-      for (var transaction in filtered) {
-        final originalCat = _findCategoryByName(transaction.category);
-        if (originalCat != null) {
-          categoryAmounts[originalCat] = 
-              (categoryAmounts[originalCat] ?? 0) + transaction.amount;
-        }
-      }
-      
-      final total = _getFilteredTotal();
-      if (total == 0) {
-        _cachedFilteredCategories![_selectedPeriod] = [];
-        return [];
-      }
-      
-      // Создаем список категорий
-      categories = [];
-      final currentLang = AppStrings.languageCode;
-      
-      categoryAmounts.forEach((originalCat, amount) {
-        final percent = (amount / total) * 100;
-        final localizedName = originalCat.getNameForLanguage(currentLang);
-        
-        // Используем оригинальную категорию с переводами и правильными цветами
-        // Создаем новый Color объект, чтобы убедиться, что цвет правильно передается
-        final categoryColor = Color(originalCat.color.value);
-        
-        categories.add(CategoryItem(
-          name: localizedName,
-          nameRu: originalCat.nameRu ?? originalCat.name,
-          nameKz: originalCat.nameKz ?? originalCat.name,
-          nameEn: originalCat.nameEn ?? originalCat.name,
-          amount: amount,
-          percent: percent,
-          color: categoryColor, // Используем новый Color объект с тем же значением
-        ));
-      });
-      
-      // Сортируем по убыванию суммы
-      categories.sort((a, b) => b.amount.compareTo(a.amount));
-    }
-    
-    // Сохраняем в кэш
-    _cachedFilteredCategories![_selectedPeriod] = categories;
-    return categories;
   }
 
   Widget _buildDashboard(NumberFormat fmt, bool isDark) {
-    final filteredTotal = _getFilteredTotal();
-    final filteredCategories = _getFilteredCategories();
-    final filteredTransactions = _getFilteredTransactions();
-    
-    return ValueListenableBuilder<Language>(
-      valueListenable: AppStrings.languageNotifier,
-      builder: (context, language, child) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -575,269 +341,206 @@ class _FinanceScreenState extends State<FinanceScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF2E3A59), Color(0xFF4B6CB7)]),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF2E3A59), Color(0xFF4B6CB7)],
+              ),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                    Text(AppStrings.get('total_spent'), style: const TextStyle(color: Colors.white70)),
-                    Text(fmt.format(filteredTotal), style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 10),
-                    Text("${AppStrings.get('forecast')}: ${fmt.format(_data!.forecast)}", style: const TextStyle(color: Colors.white70)),
+                const Text(
+                  'Необходимый бюджет',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                Text(
+                  fmt.format(_data!.totalBudget),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Burn Rate / мес',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                        Text(
+                          fmt.format(_data!.monthlyBurnRate),
+                          style: const TextStyle(
+                            color: Colors.amber,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Runway',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                        Text(
+                          '${_data!.runwayMonths} мес.',
+                          style: const TextStyle(
+                            color: Colors.greenAccent,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
           const SizedBox(height: 20),
 
-              // Переключатель периодов
-              SegmentedButton<FilterPeriod>(
-                showSelectedIcon: false, // Убираем галочку
-                segments: [
-                  ButtonSegment(
-                    value: FilterPeriod.week,
-                    label: SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        AppStrings.get('period_week'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 14),
+          if (_data!.categories.isNotEmpty) ...[
+            const Text(
+              'Распределение бюджета',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 200,
+              child: PieChart(
+                PieChartData(
+                  sectionsSpace: 2,
+                  centerSpaceRadius: 40,
+                  sections: _data!.categories.map((cat) {
+                    return PieChartSectionData(
+                      color: cat.color,
+                      value: cat.percent,
+                      title: '${cat.percent.toInt()}%\n${cat.name}',
+                      radius: 50,
+                      titleStyle: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                    ),
-                  ),
-                  ButtonSegment(
-                    value: FilterPeriod.month,
-                    label: SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        AppStrings.get('period_month'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ),
-                  ButtonSegment(
-                    value: FilterPeriod.all,
-                    label: SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        AppStrings.get('period_all'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ),
-                ],
-                selected: {_selectedPeriod},
-                onSelectionChanged: (Set<FilterPeriod> newSelection) {
-                  setState(() {
-                    _selectedPeriod = newSelection.first;
-                  });
-                },
-                style: ButtonStyle(
-                  fixedSize: MaterialStateProperty.all(const Size(double.infinity, 40)),
-                  backgroundColor: MaterialStateProperty.resolveWith<Color?>((states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return const Color(0xFF2E3A59);
-                    }
-                    return null;
-                  }),
-                  foregroundColor: MaterialStateProperty.resolveWith<Color?>((states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return Colors.white;
-                    }
-                    return isDark ? Colors.white : Colors.black;
-                  }),
+                    );
+                  }).toList(),
                 ),
               ),
-              const SizedBox(height: 20),
-
-              Text(AppStrings.get('categories_title'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 20),
-              
-              // График по отфильтрованным данным
-              if (filteredCategories.isNotEmpty)
-                SizedBox(
-                  height: 200,
-                  child: PieChart(
-                    key: ValueKey('pie_${_selectedPeriod}_${filteredCategories.length}'),
-                    PieChartData(
-                      sectionsSpace: 2,
-                      centerSpaceRadius: 40,
-                      sections: filteredCategories.map((cat) {
-                        // Используем цвет напрямую из категории
-                        return PieChartSectionData(
-                          color: cat.color,
-                          value: cat.percent,
-                          title: '${cat.percent.toInt()}%',
-                          radius: 50,
-                          titleStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  height: 200,
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Нет данных за выбранный период',
-                    style: TextStyle(color: isDark ? Colors.white70 : Colors.grey),
-                  ),
-                ),
-
-              const SizedBox(height: 10),
-              
-              // Список категорий по отфильтрованным данным
-              ...filteredCategories.take(5).map((cat) {
-                final currentLang = AppStrings.languageCode;
-                final displayName = cat.getNameForLanguage(currentLang);
-                return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              children: [
-                CircleAvatar(backgroundColor: cat.color, radius: 5),
-                const SizedBox(width: 10),
-                      Expanded(child: Text(displayName, style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color))),
-                      Text(fmt.format(cat.amount), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
-              ],
             ),
-                );
-              }),
-
-          const SizedBox(height: 20),
-
-              // Список последних транзакций
-              if (filteredTransactions.isNotEmpty) ...[
-                Text(AppStrings.get('recent_transactions'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
-                const SizedBox(height: 10),
-                ...filteredTransactions.take(10).map((transaction) {
-                  // Находим цвет категории
-                  Color? categoryColor;
-                  for (var cat in _data!.categories) {
-                    if (cat.name == transaction.category) {
-                      categoryColor = cat.color;
-                      break;
-                    }
-                  }
-                  categoryColor ??= const Color(0xFF9E9E9E);
-                  
-                  // Форматируем дату (без локали, чтобы избежать ошибки инициализации)
-                  final dateStr = '${transaction.date.day.toString().padLeft(2, '0')}.${transaction.date.month.toString().padLeft(2, '0')}.${transaction.date.year}';
-                  
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: categoryColor.withOpacity(0.2),
-                        child: Icon(
-                          _getCategoryIcon(transaction.category),
-                          color: categoryColor,
-                          size: 20,
-                        ),
-                      ),
-                      title: Text(
-                        transaction.name,
+            const SizedBox(height: 10),
+            ..._data!.categories.map(
+              (cat) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    CircleAvatar(backgroundColor: cat.color, radius: 5),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        cat.name,
                         style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
-                      ),
-                      subtitle: Text(
-                        dateStr,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ),
-                      trailing: Text(
-                        fmt.format(transaction.amount),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
                           color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
                     ),
-                  );
-                }),
-              ],
-
-              const SizedBox(height: 20),
+                    Text(
+                      fmt.format(cat.amount),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
 
           if (_data!.advice.isNotEmpty)
             Card(
-              color: isDark ? Colors.amber.withOpacity(0.1) : Colors.amber[50], // Адаптивный цвет
+              color: isDark ? Colors.blue.withOpacity(0.1) : Colors.blue[50],
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const Icon(Icons.lightbulb, color: Colors.amber),
+                    const Icon(Icons.auto_awesome, color: Colors.blue),
                     const SizedBox(width: 10),
                     Expanded(child: Text(_data!.advice)),
                   ],
                 ),
               ),
             ),
-
           const SizedBox(height: 20),
 
-          if (_data!.subscriptions.isNotEmpty) ...[
-                Text(AppStrings.get('subs_title'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
-            ..._data!.subscriptions.map((sub) => ListTile(
-              leading: const Icon(Icons.subscriptions, color: Colors.red),
-                  title: Text(sub.name, style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color)),
-                  trailing: Text(fmt.format(sub.cost), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
-            )),
+          if (_data!.team.isNotEmpty) ...[
+            const Text(
+              'Команда MVP',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            ..._data!.team.map(
+              (member) => Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blueGrey.withOpacity(0.2),
+                    child: const Icon(Icons.person, color: Colors.blueGrey),
+                  ),
+                  title: Text(
+                    member.role,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  subtitle: Text(
+                    member.stack,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
+                  ),
+                  trailing: Text(
+                    '${fmt.format(member.salary)}/мес',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
 
           const SizedBox(height: 40),
           Center(
             child: TextButton(
-                  onPressed: () {
-                    if (mounted) {
-                      setState(() {
-                        _data = null;
-                        _rawJson = null;
-                        _chatHistory.clear();
-                        _clearCache(); // Очищаем кэш
-                      });
-                    }
-                  },
-                  child: Text(AppStrings.get('upload_btn')),
-                ),
-              ),
-            ],
+              onPressed: () {
+                if (mounted) {
+                  setState(() {
+                    _data = null;
+                    _rawJson = null;
+                    _ideaController.clear();
+                  });
+                }
+              },
+              child: const Text('Рассчитать другую идею'),
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
-  }
-  
-  // Получить иконку для категории
-  IconData _getCategoryIcon(String category) {
-    final lowerCategory = category.toLowerCase();
-    if (lowerCategory.contains('такси') || lowerCategory.contains('yandex') || lowerCategory.contains('uber')) {
-      return Icons.directions_car;
-    } else if (lowerCategory.contains('продукт') || lowerCategory.contains('magnum') || lowerCategory.contains('еда')) {
-      return Icons.shopping_cart;
-    } else if (lowerCategory.contains('развлеч') || lowerCategory.contains('steam') || lowerCategory.contains('кино')) {
-      return Icons.movie;
-    } else if (lowerCategory.contains('фастфуд') || lowerCategory.contains('ресторан')) {
-      return Icons.restaurant;
-    } else if (lowerCategory.contains('подписк') || lowerCategory.contains('spotify') || lowerCategory.contains('netflix')) {
-      return Icons.subscriptions;
-    } else {
-      return Icons.payment;
-    }
   }
 }
 
-// (Код FunLoader остался таким же, можно оставить его внизу файла)
 class FunLoader extends StatefulWidget {
   const FunLoader({super.key});
 
@@ -849,9 +552,12 @@ class _FunLoaderState extends State<FunLoader> {
   int _index = 0;
   late final Stream<int> _timerStream;
   final List<String> _loadingPhrases = [
-    "🤖 ИИ надевает очки...", "🧐 Изучаем траты...", "💸 Ищем деньги...",
-    "🧹 Чистим данные...", "📊 Рисуем графики...", "🚀 Греем сервера...",
-    "🤔 Вспоминаем курс...", "🍕 Хочется пиццы...", "🕵️‍♂️ Ищем подписки...", "✨ Почти всё..."
+    "🤖 ИИ оценивает идею...",
+    "💼 Считаем зарплаты...",
+    "🚀 Выбираем сервера...",
+    "📈 Формируем бюджет...",
+    "💸 Ищем инвесторов...",
+    "✨ Почти всё...",
   ];
 
   StreamSubscription<int>? _subscription;
@@ -859,7 +565,10 @@ class _FunLoaderState extends State<FunLoader> {
   @override
   void initState() {
     super.initState();
-    _timerStream = Stream.periodic(const Duration(milliseconds: 2500), (i) => i);
+    _timerStream = Stream.periodic(
+      const Duration(milliseconds: 2500),
+      (i) => i,
+    );
     _subscription = _timerStream.listen((i) {
       if (mounted) {
         setState(() => _index = (i + 1) % _loadingPhrases.length);
@@ -887,7 +596,10 @@ class _FunLoaderState extends State<FunLoader> {
               _loadingPhrases[_index],
               key: ValueKey<String>(_loadingPhrases[_index]),
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w500),
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

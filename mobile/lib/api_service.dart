@@ -10,24 +10,25 @@ class ApiService {
     } else {
       return 'http://172.16.3.124:8000';
     }
-  }  
-  final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 60),
-    receiveTimeout: const Duration(seconds: 300), // Увеличиваем таймаут до 5 минут для DeepSeek API
-  ));
+  }
 
-  // Загрузка файла (уже было)
-  Future<Map<String, dynamic>> uploadStatement(File file) async {
+  final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 300),
+    ),
+  );
+
+  // 👇 НОВЫЙ МЕТОД ДЛЯ РАСЧЕТА СТАРТАПА (Вместо загрузки PDF) 👇
+  Future<Map<String, dynamic>> calculateStartupPlan(
+    String ideaDescription,
+  ) async {
     try {
-      String fileName = file.path.split('/').last;
-      FormData formData = FormData.fromMap({
-        "file": await MultipartFile.fromFile(file.path, filename: fileName),
-      });
-      // Передаем текущий язык приложения
       final language = AppStrings.languageCode;
+      // Обратите внимание: эндпоинт изменен на /analyze_startup
       Response response = await _dio.post(
-        '$_baseUrl/analyze',
-        data: formData,
+        '$_baseUrl/analyze_startup',
+        data: {"description": ideaDescription},
         queryParameters: {'language': language},
       );
       return response.data;
@@ -36,23 +37,23 @@ class ApiService {
     }
   }
 
-  // 👇 НОВЫЙ МЕТОД ДЛЯ ЧАТА 👇
-  Future<String> sendChatMessage(String question, Map<String, dynamic> fullJsonContext) async {
+  // Метод для чата (адаптирован под стартапы)
+  Future<String> sendChatMessage(
+    String question,
+    Map<String, dynamic> fullJsonContext,
+  ) async {
     try {
-      // 📖 ИСПОЛЬЗОВАНИЕ: Загружаем сохраненную финансовую цель из SharedPreferences
-      // Ключ: 'user_goal'
-      // Сохранение: goals_screen.dart -> _saveData()
-      // Отправляется на бэкенд: backend/main.py -> ChatRequest.user_goal -> используется в системном промпте
       final prefs = await SharedPreferences.getInstance();
-      final userGoal = prefs.getString('user_goal') ?? '';
-      
+      // Меняем дефолтную цель на актуальную для контекста
+      final userGoal = prefs.getString('user_goal') ?? 'Запуск успешного MVP';
+
       final response = await _dio.post(
         '$_baseUrl/chat',
         data: {
           "question": question,
           "context": fullJsonContext,
-          "language": AppStrings.languageCode, // Передаем текущий язык приложения
-          "user_goal": userGoal, // Добавляем финансовую цель пользователя
+          "language": AppStrings.languageCode,
+          "user_goal": userGoal,
         },
       );
       return response.data['reply'];

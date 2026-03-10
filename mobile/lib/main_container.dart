@@ -22,9 +22,9 @@ class _MainContainerState extends State<MainContainer> {
   int _currentIndex = 0;
   bool _isCheckingPin = true;
   bool _pinSet = false;
-  
-  // Состояние для ChatScreen (нужно для передачи данных из FinanceScreen)
-  FinanceData? _chatFinanceData;
+
+  // Состояние для ChatScreen (теперь используем StartupPlanData)
+  StartupPlanData? _chatPlanData;
   Map<String, dynamic>? _chatRawContext;
   final List<Map<String, String>> _chatHistory = [];
 
@@ -37,45 +37,45 @@ class _MainContainerState extends State<MainContainer> {
   Future<void> _checkPinAndLoadData() async {
     final prefs = await SharedPreferences.getInstance();
     final skipVerify = prefs.getBool('skip_pin_verify_once') ?? false;
-    
+
     if (skipVerify) {
       await prefs.remove('skip_pin_verify_once');
     }
-    
+
     final pinSet = await PinScreen.isPinSet();
     final shouldSkipVerify = skipVerify && pinSet;
-    
+
     if (mounted) {
       setState(() {
         _pinSet = shouldSkipVerify ? false : pinSet;
         _isCheckingPin = false;
       });
-      
+
       if (!pinSet || shouldSkipVerify) {
-        _loadSavedFinanceData();
+        _loadSavedPlanData();
       }
     }
   }
 
   // Загружаем сохраненные данные при инициализации
-  Future<void> _loadSavedFinanceData() async {
+  Future<void> _loadSavedPlanData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedJson = prefs.getString('finance_data_json');
-      
+
       if (savedJson != null) {
         final jsonData = json.decode(savedJson) as Map<String, dynamic>;
-        final financeData = FinanceData.fromJson(jsonData);
-        
+        final planData = StartupPlanData.fromJson(jsonData);
+
         if (mounted) {
           setState(() {
-            _chatFinanceData = financeData;
+            _chatPlanData = planData;
             _chatRawContext = jsonData;
             // Добавляем приветственное сообщение, если истории нет
             if (_chatHistory.isEmpty) {
               _chatHistory.add({
-                "role": "ai", 
-                "text": AppStrings.get('chat_welcome_message')
+                "role": "ai",
+                "text": AppStrings.get('chat_welcome_message'),
               });
             }
           });
@@ -92,15 +92,18 @@ class _MainContainerState extends State<MainContainer> {
     });
   }
 
-  // Метод для открытия чата с данными из FinanceScreen
-  void openChatWithData(FinanceData financeData, Map<String, dynamic> rawContext) {
+  // Метод для открытия чата с данными из FinanceScreen (ныне экран стартапа)
+  void openChatWithData(
+    StartupPlanData planData,
+    Map<String, dynamic> rawContext,
+  ) {
     setState(() {
-      _chatFinanceData = financeData;
+      _chatPlanData = planData;
       _chatRawContext = rawContext;
       _chatHistory.clear();
       _chatHistory.add({
-        "role": "ai", 
-        "text": AppStrings.get('chat_welcome_message')
+        "role": "ai",
+        "text": AppStrings.get('chat_welcome_message'),
       });
       _currentIndex = 1; // Переключаемся на вкладку чата
     });
@@ -109,19 +112,15 @@ class _MainContainerState extends State<MainContainer> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Если проверяем PIN, показываем загрузку
     if (_isCheckingPin) {
       return const Scaffold(
         backgroundColor: Color(0xFF2E3A59),
-        body: Center(
-          child: CircularProgressIndicator(
-            color: Colors.white,
-          ),
-        ),
+        body: Center(child: CircularProgressIndicator(color: Colors.white)),
       );
     }
-    
+
     // Если PIN установлен, показываем экран ввода PIN
     if (_pinSet) {
       return PinScreen(
@@ -131,24 +130,23 @@ class _MainContainerState extends State<MainContainer> {
           setState(() {
             _pinSet = false;
           });
-          _loadSavedFinanceData();
+          _loadSavedPlanData();
         },
       );
     }
-    
+
     return Scaffold(
       extendBody: true, // Позволяет контенту проходить под панелью навигации
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          // Index 0: FinanceScreen (Главная)
-          FinanceScreen(
-            onChatRequested: openChatWithData,
-          ),
+          // Index 0: FinanceScreen (Главная - теперь Аналитика Стартапа)
+          FinanceScreen(onChatRequested: openChatWithData),
           // Index 1: ChatScreen (Чат)
-          _chatFinanceData != null && _chatRawContext != null
+          _chatPlanData != null && _chatRawContext != null
               ? ChatScreen(
-                  financeData: _chatFinanceData!,
+                  planData:
+                      _chatPlanData!, // Обратите внимание: тут мы передаем planData
                   rawContext: _chatRawContext!,
                   messages: _chatHistory,
                 )
@@ -160,7 +158,7 @@ class _MainContainerState extends State<MainContainer> {
             onLogout: () {
               // Очищаем данные при выходе
               setState(() {
-                _chatFinanceData = null;
+                _chatPlanData = null;
                 _chatRawContext = null;
                 _chatHistory.clear();
               });
@@ -175,7 +173,9 @@ class _MainContainerState extends State<MainContainer> {
   Widget _buildEmptyChatScreen() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F7),
+      backgroundColor: isDark
+          ? const Color(0xFF121212)
+          : const Color(0xFFF5F5F7),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -323,10 +323,7 @@ class _MainContainerState extends State<MainContainer> {
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                  ),
+                  child: Text(label, textAlign: TextAlign.center),
                 ),
               ),
             ],
@@ -336,5 +333,3 @@ class _MainContainerState extends State<MainContainer> {
     );
   }
 }
-
-
